@@ -35,6 +35,7 @@ gradlew.bat*
 metadata/
 **/.plugins/
 bin/
+lib/
 target/
 .metadata/.plugins/
 .recommenders/
