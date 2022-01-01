@@ -3,7 +3,7 @@ package fr.sigillum.diaboli.graphics;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
-import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_ANY_PROFILE;
+import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_DEBUG_CONTEXT;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_FORWARD_COMPAT;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
@@ -93,6 +93,12 @@ public final class Window {
 			this.width = w;
 			this.height = h;
 		});
+
+		// Getting the resolution of the primary monitor.
+		var videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		var x = (videoMode.width() - width) / 2;
+		var y = (videoMode.height() - height) / 2;
+		glfwSetWindowPos(handle, x, y);
 
 		glfwMakeContextCurrent(handle);
 		GL.createCapabilities();
