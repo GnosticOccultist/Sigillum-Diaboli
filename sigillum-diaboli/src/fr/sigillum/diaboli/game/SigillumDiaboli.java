@@ -1,5 +1,8 @@
 package fr.sigillum.diaboli.game;
 
+import org.lwjgl.opengl.GL11C;
+
+import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.graphics.Window;
 
 public class SigillumDiaboli {
@@ -10,6 +13,8 @@ public class SigillumDiaboli {
 
 	private Window window;
 
+	private Drawer drawer;
+	
 	private volatile boolean running = false;
 
 	public static void start(SigillumDiaboli game) {
@@ -18,7 +23,6 @@ public class SigillumDiaboli {
 			game.initialize();
 
 			while (game.running) {
-
 				game.update();
 
 			}
@@ -28,7 +32,8 @@ public class SigillumDiaboli {
 	}
 
 	private void initialize() {
-		this.window = Window.create(this, "HorrorGame", 1280, 720);
+		this.window = Window.create(this, "Sigillum-Diaboli", 1280, 720);
+		this.drawer = new Drawer(6);
 	}
 
 	private void update() {
@@ -43,7 +48,17 @@ public class SigillumDiaboli {
 	}
 
 	private void render() {
-
+		GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
+		drawer.begin();
+		
+		drawer.drawVertex(-0.5F, 0.5F, 0F);
+		drawer.drawVertex(-0.5f, -0.5f, 0F);
+		drawer.drawVertex(0.5F, 0.5F, 0F);
+		drawer.drawVertex(0.5F, 0.5f, 0F);
+		drawer.drawVertex(-0.5F, -0.5f, 0F);
+		drawer.drawVertex(0.5F, -0.5f, 0F);
+		
+		drawer.end();
 	}
 
 	public void exit() {
@@ -51,6 +66,7 @@ public class SigillumDiaboli {
 	}
 
 	private void shutdown() {
+		drawer.cleanup();
 		window.destroy();
 	}
 }
