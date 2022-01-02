@@ -51,12 +51,7 @@ public class SigillumDiaboli {
 		GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
 		drawer.begin();
 		
-		drawer.drawVertex(-0.5F, 0.5F, 0F);
-		drawer.drawVertex(-0.5f, -0.5f, 0F);
-		drawer.drawVertex(0.5F, 0.5F, 0F);
-		drawer.drawVertex(0.5F, 0.5f, 0F);
-		drawer.drawVertex(-0.5F, -0.5f, 0F);
-		drawer.drawVertex(0.5F, -0.5f, 0F);
+		drawer.drawRectangle(-0.5F, 0.5F, 0.75F, 0);
 		
 		drawer.end();
 	}

@@ -2,6 +2,7 @@ package fr.sigillum.diaboli.graphics;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
@@ -18,21 +19,27 @@ import fr.alchemy.utilities.file.FileUtils;
 public class Drawer {
 
 	private static final int INVALID_ID = -1;
+	
+	private static final int DATA = 0;
+	private static final int INDICES = 1;
 
 	private FloatBuffer data = null;
+	
+	private IntBuffer indices = null;
 
 	private volatile boolean drawing = false;
 
 	private int vao = INVALID_ID;
 
-	private int vbo = INVALID_ID;
-
-	int vertexCount;
+	private int[] vbo = { INVALID_ID, INVALID_ID };
 
 	private int program = INVALID_ID;
+	
+	private int currentIndex;
 
-	public Drawer(int vertexSize) {
-		this.data = MemoryUtil.memAllocFloat(3 * vertexSize);
+	public Drawer(int rectangleSize) {
+		this.data = MemoryUtil.memAllocFloat(12 * rectangleSize);
+		this.indices = MemoryUtil.memAllocInt(6 * rectangleSize);
 	}
 
 	public void begin() {
@@ -46,11 +53,17 @@ public class Drawer {
 
 		GL30C.glBindVertexArray(vao);
 
-		if (vbo == INVALID_ID) {
-			this.vbo = GL15C.glGenBuffers();
+		if (vbo[DATA] == INVALID_ID) {
+			this.vbo[DATA] = GL15C.glGenBuffers();
 		}
 
-		GL15C.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo);
+		GL15C.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo[DATA]);
+		
+		if (vbo[INDICES] == INVALID_ID) {
+			this.vbo[INDICES] = GL15C.glGenBuffers();
+		}
+
+		GL15C.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vbo[INDICES]);
 		
 		if (program == INVALID_ID) {
 			createProgram();
@@ -60,10 +73,21 @@ public class Drawer {
 
 		this.drawing = true;
 	}
+	
+	public void drawRectangle(float x, float y0, float y1, float z) {
+		var i = currentIndex;
+		this.indices.put(i).put(i + 1).put(i + 3)
+			.put(i + 3).put(i + 1).put(i + 2);
+		currentIndex += 4;
+		
+		drawVertex(x, y0, z);
+		drawVertex(x, y0 - 1.0f, z);
+		drawVertex(x + 1, y1 - 1.0f, z);
+		drawVertex(x + 1, y1, z);
+	}
 
 	public void drawVertex(float x, float y, float z) {
 		this.data.put(x).put(y).put(z);
-		this.vertexCount++;
 	}
 
 	public void end() {
@@ -72,28 +96,40 @@ public class Drawer {
 		}
 
 		this.data.flip();
+		this.indices.flip();
 
 		assert vao != INVALID_ID;
 		GL30C.glBindVertexArray(vao);
+		
+		assert vbo[INDICES] != INVALID_ID;
+		GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, vbo[INDICES]);
+		GL15C.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indices, GL15C.GL_DYNAMIC_DRAW);
 
-		assert vbo != INVALID_ID;
-		GL15C.glBindBuffer(GL15C.GL_ARRAY_BUFFER, vbo);
+		assert vbo[DATA] != INVALID_ID;
+		GL15C.glBindBuffer(GL15C.GL_ARRAY_BUFFER, vbo[DATA]);
 		GL15C.glBufferData(GL15C.GL_ARRAY_BUFFER, data, GL15C.GL_DYNAMIC_DRAW);
 
 		GL30C.glEnableVertexAttribArray(0);
 
 		GL30C.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 0, 0);
 
-		GL15C.glDrawArrays(GL11.GL_TRIANGLES, 0, 12);
+		GL15C.glDrawElements(GL11C.GL_TRIANGLES, indices.remaining(), GL11.GL_UNSIGNED_INT, 0);
 
 		this.data.clear();
-		this.vertexCount = 0;
+		this.indices.clear();
+		
+		this.currentIndex = 0;
 		this.drawing = false;
 	}
 
 	public void cleanup() {
 		MemoryUtil.memFree(data);
 		this.data = null;
+		MemoryUtil.memFree(indices);
+		this.indices = null;
+		
+		this.currentIndex = 0;
+		this.drawing = false;
 	}
 
 	private void createProgram() {
