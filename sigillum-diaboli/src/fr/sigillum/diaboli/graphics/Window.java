@@ -1,6 +1,6 @@
 package fr.sigillum.diaboli.graphics;
 
-import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
+import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_ANY_PROFILE;
@@ -26,13 +26,13 @@ import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
-import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import fr.alchemy.utilities.logging.FactoryLogger;
@@ -97,6 +97,10 @@ public final class Window {
 			this.height = h;
 		});
 
+		glfwSetFramebufferSizeCallback(handle, (handle, w, h) -> {
+			game.resize(w, h);
+		});
+
 		// Getting the resolution of the primary monitor.
 		var videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 		var x = (videoMode.width() - width) / 2;
@@ -122,6 +126,21 @@ public final class Window {
 	}
 
 	public void flush() {
+		// Initial resizing of the framebuffer.
+		if (game.getFrames() == 2) {
+			try (var stack = MemoryStack.stackPush()) {
+				var w = stack.mallocInt(1);
+				var h = stack.mallocInt(1);
+				glfwGetFramebufferSize(handle, w, h);
+
+				var width = w.get();
+				var height = h.get();
+				if (width != this.width || height != this.height) {
+					game.resize(width, height);
+				}
+			}
+		}
+
 		glfwSwapBuffers(handle);
 		glfwPollEvents();
 	}

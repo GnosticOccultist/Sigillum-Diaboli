@@ -8,7 +8,7 @@ import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.graphics.Window;
 import fr.sigillum.diaboli.map.Region;
 
-public class SigillumDiaboli {
+public class SigillumDiaboli extends AbstractGame {
 
 	public static void main(String[] args) {
 		start(new SigillumDiaboli());
@@ -18,50 +18,32 @@ public class SigillumDiaboli {
 
 	private Drawer drawer;
 
-	private Region region;
-
-	private volatile boolean running = false;
-
-	public static void start(SigillumDiaboli game) {
-		try {
-			game.running = true;
-			game.initialize();
-
-			while (game.running) {
-				game.update();
-
-			}
-		} finally {
-			game.shutdown();
-		}
-	}
-
-	private void initialize() {
+	@Override
+	protected void initialize() {
 		this.window = Window.create(this, "Sigillum-Diaboli", 1280, 720);
 		this.drawer = new Drawer(32 * 32);
-		this.drawer.begin();
 
-		GL11C.glViewport(0, 0, window.getWidth(), window.getHeight());
-		drawer.projectionMatrix(window.getWidth(), window.getHeight());
+		resize(window.getWidth(), window.getHeight());
 		drawer.viewMatrix(new Vector3f(-2, 5, -2), new Vector2f(16, 137));
-
-		this.drawer.end();
 
 		this.region = new Region(0, 0);
 	}
 
-	private void update() {
+	@Override
+	protected void update() {
 		if (window.shouldClose()) {
 			exit();
 			return;
 		}
+
+		super.update();
 
 		render();
 
 		window.flush();
 	}
 
-	private void render() {
+	protected void render() {
 		GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
 		drawer.begin();
 
@@ -70,12 +52,19 @@ public class SigillumDiaboli {
 		drawer.end();
 	}
 
-	public void exit() {
-		this.running = false;
+	public void resize(int width, int height) {
+		GL11C.glViewport(0, 0, width, height);
+		drawer.projectionMatrix(width, height);
 	}
 
-	private void shutdown() {
+	@Override
+	protected void shutdown() {
+		logger.info("Disposing active resources...");
+
 		drawer.cleanup();
+
 		window.destroy();
+
+		logger.info("Succesfully disposed of resources.");
 	}
 }

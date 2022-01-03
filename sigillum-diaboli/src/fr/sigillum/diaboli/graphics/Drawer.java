@@ -100,13 +100,25 @@ public class Drawer {
 	}
 
 	public void projectionMatrix(int width, int height) {
+		// Force create the program.
+		if (program == INVALID_ID) {
+			createProgram();
+			GL20C.glUseProgram(program);
+		}
+
 		var ratio = (float) width / (float) height;
-		this.projectionMatrix.perspective(70.0F, ratio, 0.1f, 1000.0f);
+		this.projectionMatrix.identity().perspective(70.0F, ratio, 0.1f, 1000.0f);
 
 		matrix4f("projectionMatrix", projectionMatrix);
 	}
 
 	public void viewMatrix(Vector3f position, Vector2f rotation) {
+		// Force create the program.
+		if (program == INVALID_ID) {
+			createProgram();
+			GL20C.glUseProgram(program);
+		}
+
 		this.viewMatrix.identity().rotate((float) Math.toRadians(rotation.x()), new Vector3f(1, 0, 0))
 				.rotate((float) Math.toRadians(rotation.y()), new Vector3f(0, 1, 0))
 				.translate(-position.x(), -position.y(), -position.z());

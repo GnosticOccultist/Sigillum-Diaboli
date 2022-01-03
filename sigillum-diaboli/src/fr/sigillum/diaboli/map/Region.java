@@ -12,6 +12,10 @@ public class Region {
 		this.x = x;
 		this.z = z;
 	}
+	
+	public void tick() {
+		
+	}
 
 	public void render(Drawer drawer) {
 		var rx = x * SIZE;
