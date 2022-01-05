@@ -12,9 +12,7 @@ import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL15C;
 import org.lwjgl.opengl.GL20C;
-import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL30C;
-import org.lwjgl.opengl.GL33;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
@@ -83,15 +81,31 @@ public class Drawer {
 	}
 
 	public void drawRectangle(float x, float y0, float y1, float z) {
+		drawRectangle(x, y0, y1, z, 1.0f);
+	}
+
+	public void drawVertPlane(float x0, float z0, float x1, float z1, float y, float height) {
 		var i = currentIndex;
 		this.indices.put(i).put(i + 1).put(i + 2)
-				.put(i).put(i + 2).put(i + 3);
+			.put(i).put(i + 2).put(i + 3);
 		currentIndex += 4;
 
-		drawVertex(x, y0, z, 0.8f);
-		drawVertex(x, y0, z + 1, 0.8F);
-		drawVertex(x + 1, y1, z + 1, 0.5F);
-		drawVertex(x + 1, y1, z, 0.5F);
+		drawVertex(x0, y + height, z0, 0.7F);
+		drawVertex(x0, y, z0, 0.7F);
+		drawVertex(x1, y, z1, 0.7F);
+		drawVertex(x1, y + height, z1, 0.7F);
+	}
+
+	public void drawRectangle(float x, float y0, float y1, float z, float brightness) {
+		var i = currentIndex;
+		this.indices.put(i).put(i + 1).put(i + 2)
+			.put(i).put(i + 2).put(i + 3);
+		currentIndex += 4;
+
+		drawVertex(x, y0, z, brightness);
+		drawVertex(x, y0, z + 1, brightness);
+		drawVertex(x + 1, y1, z + 1, brightness);
+		drawVertex(x + 1, y1, z, brightness);
 	}
 
 	public void drawVertex(float x, float y, float z, float brightness) {
@@ -168,10 +182,21 @@ public class Drawer {
 	}
 
 	public void cleanup() {
+		GL30C.glDeleteVertexArrays(vao);
+		this.vao = INVALID_ID;
+
+		GL15C.glDeleteBuffers(vbo[DATA]);
+		this.vbo[DATA] = INVALID_ID;
 		MemoryUtil.memFree(data);
 		this.data = null;
+
+		GL15C.glDeleteBuffers(vbo[INDICES]);
+		this.vbo[INDICES] = INVALID_ID;
 		MemoryUtil.memFree(indices);
 		this.indices = null;
+
+		GL20C.glDeleteProgram(program);
+		this.program = INVALID_ID;
 
 		this.currentIndex = 0;
 		this.drawing = false;
@@ -208,11 +233,11 @@ public class Drawer {
 				sb.append(line).append("\n");
 			}
 
-			int id = GL20C.glCreateShader(GL33.GL_FRAGMENT_SHADER);
+			int id = GL20C.glCreateShader(GL20C.GL_FRAGMENT_SHADER);
 			GL20C.glShaderSource(id, sb);
 			GL20C.glCompileShader(id);
 
-			if (GL20C.glGetShaderi(id, GL30.GL_COMPILE_STATUS) == GL11C.GL_FALSE) {
+			if (GL20C.glGetShaderi(id, GL20C.GL_COMPILE_STATUS) == GL11C.GL_FALSE) {
 				throw new RuntimeException(
 						"An error occured when compiling fragment shader " + GL20C.glGetShaderInfoLog(id, 1024));
 			}
@@ -223,5 +248,15 @@ public class Drawer {
 		}
 
 		GL20C.glLinkProgram(program);
+		if (GL20C.glGetProgrami(program, GL20C.GL_LINK_STATUS) == GL11C.GL_FALSE) {
+			throw new RuntimeException(
+					"An error occured when linking shader program " + GL20C.glGetProgramInfoLog(program, 1024));
+		}
+
+		GL20C.glValidateProgram(program);
+		if (GL20C.glGetProgrami(program, GL20C.GL_VALIDATE_STATUS) == GL11C.GL_FALSE) {
+			throw new RuntimeException(
+					"An error occured when validating shader program " + GL20C.glGetProgramInfoLog(program, 1024));
+		}
 	}
 }

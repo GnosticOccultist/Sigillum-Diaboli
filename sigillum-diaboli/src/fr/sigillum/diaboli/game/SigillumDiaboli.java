@@ -29,7 +29,7 @@ public class SigillumDiaboli extends AbstractGame {
 		this.window = Window.create(this, "Sigillum-Diaboli", 1280, 720);
 		this.input = new Input(window);
 		this.input.grab();
-		this.drawer = new Drawer(32 * 32);
+		this.drawer = new Drawer(32 * 32 * 3);
 
 		resize(window.getWidth(), window.getHeight());
 		drawer.viewMatrix(new Vector3f(-2, 5, -2), rotation);
