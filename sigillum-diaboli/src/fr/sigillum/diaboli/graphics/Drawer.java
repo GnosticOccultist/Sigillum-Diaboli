@@ -90,10 +90,10 @@ public class Drawer {
 			.put(i).put(i + 2).put(i + 3);
 		currentIndex += 4;
 
-		drawVertex(x0, y + height, z0, 0.7F);
-		drawVertex(x0, y, z0, 0.7F);
-		drawVertex(x1, y, z1, 0.7F);
-		drawVertex(x1, y + height, z1, 0.7F);
+		drawVertex(x0, y + height, z0, 0.7F, 0, 0);
+		drawVertex(x0, y, z0, 0.7F, 0, 1);
+		drawVertex(x1, y, z1, 0.7F, 1, 1);
+		drawVertex(x1, y + height, z1, 0.7F, 1, 0);
 	}
 
 	public void drawRectangle(float x, float y0, float y1, float z, float brightness) {
@@ -102,15 +102,20 @@ public class Drawer {
 			.put(i).put(i + 2).put(i + 3);
 		currentIndex += 4;
 
-		drawVertex(x, y0, z, brightness);
-		drawVertex(x, y0, z + 1, brightness);
-		drawVertex(x + 1, y1, z + 1, brightness);
-		drawVertex(x + 1, y1, z, brightness);
+		drawVertex(x, y0, z, brightness, 0, 0);
+		drawVertex(x, y0, z + 1, brightness, 0, 1);
+		drawVertex(x + 1, y1, z + 1, brightness, 1, 1);
+		drawVertex(x + 1, y1, z, brightness, 1, 0);
 	}
-
-	public void drawVertex(float x, float y, float z, float brightness) {
+	
+	public void drawVertex(float x, float y, float z, float brightness, float u, float v) {
 		this.data.put(x).put(y).put(z);
 		this.data.put(brightness);
+		this.data.put(u).put(v);
+	}
+
+	public void drawVertex(float x, float y, float z, float u, float v) {
+		drawVertex(x, y, z, 1.0f, u, v);
 	}
 
 	public void projectionMatrix(int width, int height) {
@@ -169,8 +174,9 @@ public class Drawer {
 		GL30C.glEnableVertexAttribArray(0);
 		GL30C.glEnableVertexAttribArray(1);
 
-		GL30C.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 16, 0);
-		GL30C.glVertexAttribPointer(1, 1, GL11.GL_FLOAT, false, 16, 12);
+		GL30C.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 24, 0);
+		GL30C.glVertexAttribPointer(1, 1, GL11.GL_FLOAT, false, 24, 12);
+		GL30C.glVertexAttribPointer(2, 2, GL11.GL_FLOAT, false, 24, 16);
 
 		GL15C.glDrawElements(GL11C.GL_TRIANGLES, indices.remaining(), GL11.GL_UNSIGNED_INT, 0);
 

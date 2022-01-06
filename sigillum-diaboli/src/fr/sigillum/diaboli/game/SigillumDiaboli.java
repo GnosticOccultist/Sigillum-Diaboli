@@ -32,7 +32,7 @@ public class SigillumDiaboli extends AbstractGame {
 		this.drawer = new Drawer(32 * 32 * 3);
 
 		resize(window.getWidth(), window.getHeight());
-		drawer.viewMatrix(new Vector3f(-2, 5, -2), rotation);
+		drawer.viewMatrix(new Vector3f(-2, 10, -2), rotation);
 
 		this.region = new Region(0, 0);
 	}
@@ -73,7 +73,7 @@ public class SigillumDiaboli extends AbstractGame {
 		GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
 		drawer.begin();
 
-		drawer.viewMatrix(new Vector3f(-2, 5, -2), rotation);
+		drawer.viewMatrix(new Vector3f(-2, 10, -2), rotation);
 
 		region.render(drawer);
 
