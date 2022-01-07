@@ -9,6 +9,11 @@ import fr.sigillum.diaboli.input.Input;
 public class Player extends Entity {
 
 	private final Input input;
+	
+	public Player(Input input, float x, float y, float z) {
+		super(UUID.randomUUID(), x, y, z);
+		this.input = input;
+	}
 
 	public Player(UUID id, Input input, float x, float y, float z) {
 		super(id, x, y, z);

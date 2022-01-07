@@ -1,7 +1,5 @@
 package fr.sigillum.diaboli.game;
 
-import java.util.UUID;
-
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
 
@@ -23,6 +21,8 @@ public class SigillumDiaboli extends AbstractGame {
 
 	private Drawer drawer;
 
+	private Player player;
+
 	@Override
 	protected void initialize() {
 		this.window = Window.create(this, "Sigillum-Diaboli", 1280, 720);
@@ -32,10 +32,10 @@ public class SigillumDiaboli extends AbstractGame {
 
 		resize(window.getWidth(), window.getHeight());
 
-		var player = new Player(UUID.randomUUID(), input, 0, 0, 0);
+		player = new Player(input, 0, 10, 0);
 
 		this.region = new Region(0, 0);
-		this.region.addPlayer(player);
+		this.region.add(player);
 	}
 
 	@Override
@@ -72,7 +72,6 @@ public class SigillumDiaboli extends AbstractGame {
 		GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
 		drawer.begin();
 
-		var player = region.getPlayer();
 		if (player != null) {
 			drawer.viewMatrix(player.getPosition(), player.getRotation());
 		}

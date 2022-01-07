@@ -1,7 +1,8 @@
 package fr.sigillum.diaboli.map;
 
+import fr.alchemy.utilities.collections.array.Array;
 import fr.sigillum.diaboli.graphics.Drawer;
-import fr.sigillum.diaboli.map.entity.Player;
+import fr.sigillum.diaboli.map.entity.Entity;
 import fr.sigillum.diaboli.map.tiles.Tile;
 import fr.sigillum.diaboli.util.BoundingBox;
 
@@ -17,7 +18,7 @@ public class Region {
 
 	private final RegionData data;
 
-	Player player;
+	private final Array<Entity> entities = Array.ofType(Entity.class);
 
 	public Region(int x, int z) {
 		this.x = x;
@@ -26,18 +27,24 @@ public class Region {
 		this.data = RegionData.fromImage(x, z, "map");
 	}
 
-	public void addPlayer(Player player) {
-		this.player = player;
+	public boolean add(Entity entity) {
+		return entities.add(entity);
+	}
+	
+	public boolean remove(Entity entity) {
+		return entities.remove(entity);
 	}
 
 	public void tick() {
-		if (player != null) {
-			player.tick();
+		var it = entities.iterator();
+		while (it.hasNext()) {
+			var entity = it.next();
+			entity.tick();
+			
+			if (entity.shouldRemove()) {
+				it.remove();
+			}
 		}
-	}
-
-	public Player getPlayer() {
-		return player;
 	}
 
 	public void render(Drawer drawer) {
