@@ -1,7 +1,9 @@
 package fr.sigillum.diaboli.map;
 
 import fr.sigillum.diaboli.graphics.Drawer;
+import fr.sigillum.diaboli.map.entity.Player;
 import fr.sigillum.diaboli.map.tiles.Tile;
+import fr.sigillum.diaboli.util.BoundingBox;
 
 public class Region {
 
@@ -11,16 +13,31 @@ public class Region {
 
 	private final int x, z;
 
+	private final BoundingBox box;
+
 	private final RegionData data;
+
+	Player player;
 
 	public Region(int x, int z) {
 		this.x = x;
 		this.z = z;
+		this.box = new BoundingBox(x * SIZE, z * SIZE, x * SIZE + SIZE, z * SIZE + SIZE);
 		this.data = RegionData.fromImage(x, z, "map");
 	}
 
-	public void tick() {
+	public void addPlayer(Player player) {
+		this.player = player;
+	}
 
+	public void tick() {
+		if (player != null) {
+			player.tick();
+		}
+	}
+
+	public Player getPlayer() {
+		return player;
 	}
 
 	public void render(Drawer drawer) {

@@ -1,7 +1,7 @@
 package fr.sigillum.diaboli.game;
 
-import org.joml.Vector2f;
-import org.joml.Vector3f;
+import java.util.UUID;
+
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
 
@@ -9,6 +9,7 @@ import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.graphics.Window;
 import fr.sigillum.diaboli.input.Input;
 import fr.sigillum.diaboli.map.Region;
+import fr.sigillum.diaboli.map.entity.Player;
 
 public class SigillumDiaboli extends AbstractGame {
 
@@ -22,8 +23,6 @@ public class SigillumDiaboli extends AbstractGame {
 
 	private Drawer drawer;
 
-	private Vector2f rotation = new Vector2f();
-
 	@Override
 	protected void initialize() {
 		this.window = Window.create(this, "Sigillum-Diaboli", 1280, 720);
@@ -32,9 +31,11 @@ public class SigillumDiaboli extends AbstractGame {
 		this.drawer = new Drawer(32 * 32 * 3);
 
 		resize(window.getWidth(), window.getHeight());
-		drawer.viewMatrix(new Vector3f(-2, 10, -2), rotation);
+
+		var player = new Player(UUID.randomUUID(), input, 0, 0, 0);
 
 		this.region = new Region(0, 0);
+		this.region.addPlayer(player);
 	}
 
 	@Override
@@ -62,8 +63,6 @@ public class SigillumDiaboli extends AbstractGame {
 
 			super.tick();
 
-			rotation.add(input.getDelta().x() * 0.1f, input.getDelta().y() * 0.1f);
-
 		} else if (input.isLeftButtonPressed()) {
 			input.grab();
 		}
@@ -73,7 +72,10 @@ public class SigillumDiaboli extends AbstractGame {
 		GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
 		drawer.begin();
 
-		drawer.viewMatrix(new Vector3f(-2, 10, -2), rotation);
+		var player = region.getPlayer();
+		if (player != null) {
+			drawer.viewMatrix(player.getPosition(), player.getRotation());
+		}
 
 		region.render(drawer);
 
