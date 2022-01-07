@@ -7,4 +7,5 @@
  * Support multiplayer by adding communication between a server and multiple clients.
  * Implementing physics and entity movement.
  * Add various gameplay elements to turn it into an actual game.
+ * Support for 3D sounds and background music using OpenAL library.
  * (Create an AI for non player characters).
