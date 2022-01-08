@@ -3,7 +3,7 @@ package fr.sigillum.diaboli.game;
 import fr.alchemy.utilities.file.FileUtils;
 import fr.alchemy.utilities.logging.FactoryLogger;
 import fr.alchemy.utilities.logging.Logger;
-import fr.sigillum.diaboli.map.Region;
+import fr.sigillum.diaboli.map.World;
 
 public class AbstractGame {
 
@@ -11,7 +11,7 @@ public class AbstractGame {
 
 	private static final int INTERVAL = 1000 / 40;
 
-	protected volatile Region region = null;
+	protected volatile World world = null;
 
 	private volatile boolean running = false;
 
@@ -88,8 +88,8 @@ public class AbstractGame {
 	}
 
 	protected void tick() {
-		if (region != null) {
-			region.tick();
+		if (world != null) {
+			world.tick();
 		}
 	}
 

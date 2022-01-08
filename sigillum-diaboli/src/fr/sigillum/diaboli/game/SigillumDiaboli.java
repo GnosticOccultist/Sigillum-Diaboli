@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL11C;
 import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.graphics.Window;
 import fr.sigillum.diaboli.input.Input;
-import fr.sigillum.diaboli.map.Region;
+import fr.sigillum.diaboli.map.World;
 import fr.sigillum.diaboli.map.entity.Player;
 
 public class SigillumDiaboli extends AbstractGame {
@@ -33,9 +33,9 @@ public class SigillumDiaboli extends AbstractGame {
 		resize(window.getWidth(), window.getHeight());
 
 		player = new Player(input, 0, 10, 0);
-
-		this.region = new Region(0, 0);
-		this.region.add(player);
+		
+		this.world = new World();
+		this.world.add(player);
 	}
 
 	@Override
@@ -70,15 +70,12 @@ public class SigillumDiaboli extends AbstractGame {
 
 	protected void render() {
 		GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
-		drawer.begin();
 
 		if (player != null) {
 			drawer.viewMatrix(player.getPosition(), player.getRotation());
 		}
 
-		region.render(drawer);
-
-		drawer.end();
+		world.render(drawer);
 	}
 
 	public void resize(int width, int height) {
