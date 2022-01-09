@@ -37,6 +37,8 @@ public class Drawer {
 	private int[] vbo = { INVALID_ID, INVALID_ID };
 
 	private Matrix4f projectionMatrix, viewMatrix, projViewMatrix;
+	
+	private final FrustumIntersection frustum = new FrustumIntersection();
 
 	private int program = INVALID_ID;
 
@@ -133,7 +135,7 @@ public class Drawer {
 		matrix4f("projectionMatrix", projectionMatrix);
 	}
 
-	public void viewMatrix(Vector3f position, Vector2f rotation, FrustumIntersection frustum) {
+	public void viewMatrix(Vector3f position, Vector2f rotation) {
 		// Force create the program.
 		if (program == INVALID_ID) {
 			createProgram();
@@ -210,6 +212,10 @@ public class Drawer {
 
 		this.currentIndex = 0;
 		this.drawing = false;
+	}
+	
+	public FrustumIntersection getFrustum() {
+		return frustum;
 	}
 
 	private void createProgram() {

@@ -11,6 +11,9 @@ import fr.sigillum.diaboli.map.tiles.Tile;
 public class RegionData {
 
 	private static final Logger logger = FactoryLogger.getLogger("sigillum-diaboli.map.region");
+	
+	public static final Tile FLOOR = new Tile();
+	public static final Tile WALL = new Tile(true);
 
 	final Tile[] tiles;
 
@@ -30,9 +33,9 @@ public class RegionData {
 				for (var z = 0; z < Region.SIZE; ++z) {
 					var i = x + z * Region.SIZE;
 					if (pixels[i] == 0xff000000) {
-						data.tiles[i] = new Tile(x, z);
+						data.tiles[i] = FLOOR;
 					} else if (pixels[i] == 0xffffffff) {
-						data.tiles[i] = new Tile(x, z, true);
+						data.tiles[i] = WALL;
 					} else {
 						throw new IOException("Illegal pixel data to decode: " + pixels[i]);
 					}

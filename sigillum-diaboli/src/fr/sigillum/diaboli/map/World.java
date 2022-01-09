@@ -3,8 +3,6 @@ package fr.sigillum.diaboli.map;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.joml.FrustumIntersection;
-
 import fr.alchemy.utilities.collections.array.Array;
 import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.map.entity.Entity;
@@ -32,11 +30,14 @@ public class World {
 		}
 	}
 
-	public void render(Drawer drawer, FrustumIntersection frustum) {
+	public void render(Drawer drawer) {
+		var frustum = drawer.getFrustum();
+		
 		for (var region : regions) {
 			if (!region.shouldRender(frustum)) {
 				continue;
 			}
+			
 			drawer.begin();
 			region.render(drawer, frustum);
 			drawer.end();

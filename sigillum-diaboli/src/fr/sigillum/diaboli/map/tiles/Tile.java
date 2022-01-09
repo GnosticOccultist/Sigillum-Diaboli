@@ -1,17 +1,14 @@
 package fr.sigillum.diaboli.map.tiles;
 
 public class Tile {
-
-	private int x, z;
+	
 	private boolean solid;
 
-	public Tile(int x, int z) {
-		this(x, z, false);
+	public Tile() {
+		this(false);
 	}
 	
-	public Tile(int x, int z, boolean solid) {
-		this.x = x;
-		this.z = z;
+	public Tile(boolean solid) {
 		this.solid = solid;
 	}
 	
