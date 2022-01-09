@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import org.joml.FrustumIntersection;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -35,7 +36,7 @@ public class Drawer {
 
 	private int[] vbo = { INVALID_ID, INVALID_ID };
 
-	private Matrix4f projectionMatrix, viewMatrix;
+	private Matrix4f projectionMatrix, viewMatrix, projViewMatrix;
 
 	private int program = INVALID_ID;
 
@@ -46,6 +47,7 @@ public class Drawer {
 		this.indices = MemoryUtil.memAllocInt(6 * rectangleSize);
 		this.projectionMatrix = new Matrix4f();
 		this.viewMatrix = new Matrix4f();
+		this.projViewMatrix = new Matrix4f();
 	}
 
 	public void begin() {
@@ -87,7 +89,7 @@ public class Drawer {
 	public void drawVertPlane(float x0, float z0, float x1, float z1, float y, float height) {
 		var i = currentIndex;
 		this.indices.put(i).put(i + 1).put(i + 2)
-			.put(i).put(i + 2).put(i + 3);
+				.put(i).put(i + 2).put(i + 3);
 		currentIndex += 4;
 
 		drawVertex(x0, y + height, z0, 0.7F, 0, 0);
@@ -99,7 +101,7 @@ public class Drawer {
 	public void drawRectangle(float x, float y0, float y1, float z, float brightness) {
 		var i = currentIndex;
 		this.indices.put(i).put(i + 1).put(i + 2)
-			.put(i).put(i + 2).put(i + 3);
+				.put(i).put(i + 2).put(i + 3);
 		currentIndex += 4;
 
 		drawVertex(x, y0, z, brightness, 0, 0);
@@ -107,7 +109,7 @@ public class Drawer {
 		drawVertex(x + 1, y1, z + 1, brightness, 1, 1);
 		drawVertex(x + 1, y1, z, brightness, 1, 0);
 	}
-	
+
 	public void drawVertex(float x, float y, float z, float brightness, float u, float v) {
 		this.data.put(x).put(y).put(z);
 		this.data.put(brightness);
@@ -131,7 +133,7 @@ public class Drawer {
 		matrix4f("projectionMatrix", projectionMatrix);
 	}
 
-	public void viewMatrix(Vector3f position, Vector2f rotation) {
+	public void viewMatrix(Vector3f position, Vector2f rotation, FrustumIntersection frustum) {
 		// Force create the program.
 		if (program == INVALID_ID) {
 			createProgram();
@@ -143,6 +145,8 @@ public class Drawer {
 				.translate(-position.x(), -position.y(), -position.z());
 
 		matrix4f("viewMatrix", viewMatrix);
+		projViewMatrix.identity().set(projectionMatrix).mul(viewMatrix);
+		frustum.set(projViewMatrix, false);
 	}
 
 	private void matrix4f(String name, Matrix4f matrix) {

@@ -1,5 +1,6 @@
 package fr.sigillum.diaboli.game;
 
+import org.joml.FrustumIntersection;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
 
@@ -22,6 +23,8 @@ public class SigillumDiaboli extends AbstractGame {
 	private Drawer drawer;
 
 	private Player player;
+	
+	FrustumIntersection frustum = new FrustumIntersection();
 
 	@Override
 	protected void initialize() {
@@ -72,10 +75,10 @@ public class SigillumDiaboli extends AbstractGame {
 		GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
 
 		if (player != null) {
-			drawer.viewMatrix(player.getPosition(), player.getRotation());
+			drawer.viewMatrix(player.getPosition(), player.getRotation(), frustum);
 		}
 
-		world.render(drawer);
+		world.render(drawer, frustum);
 	}
 
 	public void resize(int width, int height) {

@@ -1,5 +1,7 @@
 package fr.sigillum.diaboli.map;
 
+import org.joml.FrustumIntersection;
+
 import fr.alchemy.utilities.collections.array.Array;
 import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.map.entity.Entity;
@@ -59,7 +61,7 @@ public class Region {
 		}
 	}
 
-	public void render(Drawer drawer) {
+	public void render(Drawer drawer, FrustumIntersection frustum) {
 		var rx = x * SIZE;
 		var rz = z * SIZE;
 
@@ -97,6 +99,10 @@ public class Region {
 				}
 			}
 		}
+	}
+	
+	public boolean shouldRender(FrustumIntersection frustum) {
+		return frustum.testAab(box.min(), box.max());
 	}
 
 	public Tile getTile(int x, int z) {
