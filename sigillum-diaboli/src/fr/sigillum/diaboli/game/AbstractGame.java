@@ -7,7 +7,7 @@ import fr.sigillum.diaboli.map.World;
 
 public class AbstractGame {
 
-	protected static final Logger logger = FactoryLogger.getLogger("horror-game.game");
+	protected static final Logger logger = FactoryLogger.getLogger("sigillum-diaboli.game");
 
 	private static final int INTERVAL = 1000 / 40;
 

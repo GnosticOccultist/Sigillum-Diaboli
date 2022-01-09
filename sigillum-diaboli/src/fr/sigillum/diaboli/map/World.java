@@ -4,10 +4,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fr.alchemy.utilities.collections.array.Array;
+import fr.alchemy.utilities.logging.FactoryLogger;
+import fr.alchemy.utilities.logging.Logger;
 import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.map.entity.Entity;
 
 public class World {
+
+	private static final Logger logger = FactoryLogger.getLogger("sigillum-diaboli.world");
 
 	private final Array<Region> regions = Array.ofType(Region.class);
 
@@ -25,23 +29,38 @@ public class World {
 	}
 
 	public void tick() {
-		for (var region : regions) {
+		for (var i = 0; i < regions.size(); ++i) {
+			var region = regions.get(i);
 			region.tick();
+
+			if (region.decreaseTimer()) {
+				unloadRegion(region);
+			}
 		}
+
+		logger.info("Active regions: " + regions.size() + " - " + regionCache.size());
 	}
 
 	public void render(Drawer drawer) {
 		var frustum = drawer.getFrustum();
-		
+
 		for (var region : regions) {
 			if (!region.shouldRender(frustum)) {
 				continue;
 			}
-			
+
 			drawer.begin();
 			region.render(drawer, frustum);
 			drawer.end();
 		}
+	}
+
+	public void unloadRegion(Region region) {
+		var hash = ((long) region.getZ()) << 32 | region.getX() & 0xFFFFFFFFL;
+		var old = regionCache.remove(hash);
+		assert old != null && old == region;
+		var removed = regions.remove(region);
+		assert removed;
 	}
 
 	public Region getRegion(float x, float z) {

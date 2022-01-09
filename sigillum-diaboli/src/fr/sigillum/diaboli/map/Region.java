@@ -12,6 +12,8 @@ import fr.sigillum.diaboli.util.BoundingBox;
 public class Region {
 
 	public static final int WALL_SIZE = 3;
+	
+	public static final int UNLOAD_TICK_TIME = 100;
 
 	public static final int SIZE = 32;
 
@@ -22,6 +24,8 @@ public class Region {
 	private final BoundingBox box;
 
 	private final RegionData data;
+	
+	private int unloadTimer = UNLOAD_TICK_TIME;
 
 	private final Array<Entity> entities = Array.ofType(Entity.class);
 
@@ -47,16 +51,26 @@ public class Region {
 			var entity = it.next();
 			entity.tick();
 
-			if (entity instanceof Player) {
-				for (int rx = x - 1; rx <= x + 1; ++rx) {
-					for (int rz = z - 1; rz <= z + 1; ++rz) {
-						world.getRegionLocal(rx, rz, true);
-					}
-				}
-			}
-
 			if (entity.shouldRemove()) {
 				it.remove();
+			} else {
+				if (entity instanceof Player) {
+					for (int rx = x - 1; rx <= x + 1; ++rx) {
+						for (int rz = z - 1; rz <= z + 1; ++rz) {
+							var region = world.getRegionLocal(rx, rz, true);
+							region.unloadTimer = UNLOAD_TICK_TIME;
+						}
+					}
+					
+					var rx = (int) Math.floor(entity.getPosition().x() / (double) Region.SIZE);
+					var rz = (int) Math.floor(entity.getPosition().z() / (double) Region.SIZE);
+					// Player changed regions.
+					if (rx != x || rz != z) {
+						var newRegion = world.getRegionLocal(rx, rz, true);
+						newRegion.add(entity);
+						it.remove();
+					}
+				}
 			}
 		}
 	}
@@ -110,6 +124,18 @@ public class Region {
 			return null;
 		}
 		return data.tiles[x + z * SIZE];
+	}
+	
+	boolean decreaseTimer() {
+		return --unloadTimer <= 0;
+	}
+	
+	public int getX() {
+		return x;
+	}
+	
+	public int getZ() {
+		return z;
 	}
 	
 	@Override
