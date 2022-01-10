@@ -37,7 +37,7 @@ public class Drawer {
 	private int[] vbo = { INVALID_ID, INVALID_ID };
 
 	private Matrix4f projectionMatrix, viewMatrix, projViewMatrix;
-	
+
 	private final FrustumIntersection frustum = new FrustumIntersection();
 
 	private int program = INVALID_ID;
@@ -122,6 +122,11 @@ public class Drawer {
 		drawVertex(x, y, z, 1.0f, u, v);
 	}
 
+	public void useTexture(Texture texture) {
+		texture.bind();
+		uniformInt("texture_sampler", 0);
+	}
+
 	public void projectionMatrix(int width, int height) {
 		// Force create the program.
 		if (program == INVALID_ID) {
@@ -155,6 +160,13 @@ public class Drawer {
 		try (var stack = MemoryStack.stackPush()) {
 			var loc = GL20C.glGetUniformLocation(program, name);
 			GL20C.glUniformMatrix4fv(loc, false, matrix.get(stack.mallocFloat(16)));
+		}
+	}
+
+	private void uniformInt(String name, int value) {
+		try (var stack = MemoryStack.stackPush()) {
+			var loc = GL20C.glGetUniformLocation(program, name);
+			GL20C.glUniform1i(loc, value);
 		}
 	}
 
@@ -213,7 +225,7 @@ public class Drawer {
 		this.currentIndex = 0;
 		this.drawing = false;
 	}
-	
+
 	public FrustumIntersection getFrustum() {
 		return frustum;
 	}
