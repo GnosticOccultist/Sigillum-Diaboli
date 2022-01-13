@@ -123,7 +123,13 @@ public class Drawer {
 	}
 
 	public void useTexture(Texture texture) {
-		texture.bind();
+		// Force create the program.
+		if (program == INVALID_ID) {
+			createProgram();
+			GL20C.glUseProgram(program);
+		}
+		
+		texture.bind(0);
 		uniformInt("texture_sampler", 0);
 	}
 
@@ -191,6 +197,7 @@ public class Drawer {
 
 		GL30C.glEnableVertexAttribArray(0);
 		GL30C.glEnableVertexAttribArray(1);
+		GL30C.glEnableVertexAttribArray(2);
 
 		GL30C.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 24, 0);
 		GL30C.glVertexAttribPointer(1, 1, GL11.GL_FLOAT, false, 24, 12);

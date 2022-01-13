@@ -5,6 +5,7 @@ layout (location = 1) in float color;
 layout (location = 2) in vec2 texCoords;
 
 out float outColor;
+out vec2 fragTexCoords;
 
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
@@ -15,4 +16,5 @@ void main() {
 	gl_Position = projectionMatrix * modelView;
 	
 	outColor = color;
+	fragTexCoords = texCoords;
 }
