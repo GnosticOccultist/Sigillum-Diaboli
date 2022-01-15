@@ -44,12 +44,17 @@ public class Drawer {
 
 	private int currentIndex;
 
+	// TODO: Better managing of textures.
+	Texture soil;
+	
 	public Drawer(int rectangleSize) {
 		this.data = MemoryUtil.memAllocFloat(16 * rectangleSize);
 		this.indices = MemoryUtil.memAllocInt(6 * rectangleSize);
 		this.projectionMatrix = new Matrix4f();
 		this.viewMatrix = new Matrix4f();
 		this.projViewMatrix = new Matrix4f();
+		
+		this.soil = new Texture("/textures/soil.png");
 	}
 
 	public void begin() {
@@ -131,6 +136,22 @@ public class Drawer {
 		
 		texture.bind(0);
 		uniformInt("texture_sampler", 0);
+	}
+	
+	public void useTexture() {
+		// Force create the program.
+		if (program == INVALID_ID) {
+			createProgram();
+			GL20C.glUseProgram(program);
+		}
+		
+		soil.bind(0);
+		uniformInt("texture_sampler", 0);
+	}
+	
+	public void unbindTexture() {
+		soil.unbind();
+		uniformInt("texture_sampler", -1);
 	}
 
 	public void projectionMatrix(int width, int height) {

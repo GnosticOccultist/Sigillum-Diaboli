@@ -10,5 +10,6 @@ out vec4 frag_Color;
 void main() {
 
     vec4 baseColor = texture(texture_sampler, fragTexCoords);
-    frag_Color = baseColor;
+    vec4 tintedColor = baseColor * outColor;
+    frag_Color = tintedColor;
 }

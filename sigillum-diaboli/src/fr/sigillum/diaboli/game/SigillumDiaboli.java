@@ -4,7 +4,6 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
 
 import fr.sigillum.diaboli.graphics.Drawer;
-import fr.sigillum.diaboli.graphics.Texture;
 import fr.sigillum.diaboli.graphics.Window;
 import fr.sigillum.diaboli.input.Input;
 import fr.sigillum.diaboli.map.World;
@@ -23,8 +22,6 @@ public class SigillumDiaboli extends AbstractGame {
 	private Drawer drawer;
 
 	private Player player;
-	
-	Texture soil;
 
 	@Override
 	protected void initialize() {
@@ -36,7 +33,6 @@ public class SigillumDiaboli extends AbstractGame {
 		resize(window.getWidth(), window.getHeight());
 
 		player = new Player(input, 0, 10, 0);
-		soil = new Texture("/textures/soil.png");
 		
 		this.world = new World();
 		this.world.add(player);
@@ -78,8 +74,6 @@ public class SigillumDiaboli extends AbstractGame {
 		if (player != null) {
 			drawer.viewMatrix(player.getPosition(), player.getRotation());
 		}
-
-		drawer.useTexture(soil);
 		
 		world.render(drawer);
 	}
