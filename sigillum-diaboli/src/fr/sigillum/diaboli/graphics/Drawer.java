@@ -72,15 +72,19 @@ public class Drawer {
 
 		if (vbo[DATA] == INVALID_ID) {
 			this.vbo[DATA] = GL15C.glGenBuffers();
-		}
+			GL15C.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo[DATA]);
 
-		GL15C.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo[DATA]);
+			// Initialize the buffer size.
+			GL15C.glBufferData(GL15.GL_ARRAY_BUFFER, data.capacity() * 4, GL15C.GL_DYNAMIC_DRAW);
+		}
 
 		if (vbo[INDICES] == INVALID_ID) {
 			this.vbo[INDICES] = GL15C.glGenBuffers();
-		}
+			GL15C.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vbo[INDICES]);
 
-		GL15C.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vbo[INDICES]);
+			// Initialize the buffer size.
+			GL15C.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indices.capacity() * 4, GL15C.GL_DYNAMIC_DRAW);
+		}
 
 		if (program == INVALID_ID) {
 			createProgram();
@@ -258,11 +262,11 @@ public class Drawer {
 
 		assert vbo[INDICES] != INVALID_ID;
 		GL15C.glBindBuffer(GL15C.GL_ELEMENT_ARRAY_BUFFER, vbo[INDICES]);
-		GL15C.glBufferData(GL15C.GL_ELEMENT_ARRAY_BUFFER, indices, GL15C.GL_DYNAMIC_DRAW);
+		GL15C.glBufferSubData(GL15C.GL_ELEMENT_ARRAY_BUFFER, 0, indices);
 
 		assert vbo[DATA] != INVALID_ID;
 		GL15C.glBindBuffer(GL15C.GL_ARRAY_BUFFER, vbo[DATA]);
-		GL15C.glBufferData(GL15C.GL_ARRAY_BUFFER, data, GL15C.GL_DYNAMIC_DRAW);
+		GL15C.glBufferSubData(GL15C.GL_ARRAY_BUFFER, 0, data);
 
 		GL30C.glEnableVertexAttribArray(0);
 		GL30C.glEnableVertexAttribArray(1);
@@ -273,6 +277,8 @@ public class Drawer {
 		GL30C.glVertexAttribPointer(2, 2, GL11.GL_FLOAT, false, 24, 16);
 
 		GL15C.glDrawElements(GL11C.GL_TRIANGLES, indices.remaining(), GL11.GL_UNSIGNED_INT, 0);
+
+		GL30C.glBindVertexArray(0);
 
 		this.data.clear();
 		this.indices.clear();
