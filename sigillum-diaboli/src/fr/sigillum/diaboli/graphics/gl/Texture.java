@@ -1,26 +1,29 @@
-package fr.sigillum.diaboli.graphics;
+package fr.sigillum.diaboli.graphics.gl;
 
 import java.io.IOException;
 import java.nio.IntBuffer;
-
+import java.nio.file.Files;
+import java.nio.file.Path;
 import javax.imageio.ImageIO;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL30C;
-import org.lwjgl.opengl.GL33;
+import org.lwjgl.opengl.GL33C;
 import org.lwjgl.system.MemoryUtil;
 
-public class Texture {
+import fr.sigillum.diaboli.asset.IAsset;
 
+public class Texture implements IAsset {
+	
 	private int width;
 	private int height;
 	private int id;
 
-	public Texture(String path) {
+	public Texture(Path path) {
 		int[] pixels = null;
 		try {
-			var img = ImageIO.read(Texture.class.getResourceAsStream(path));
+			var img = ImageIO.read(Files.newInputStream(path));
 			this.width = img.getWidth();
 			this.height = img.getHeight();
 			pixels = new int[width * height];
@@ -57,15 +60,27 @@ public class Texture {
 	}
 
 	public void bind() {
+		assert id > INVALID_ID;
 		GL11.glBindTexture(GL11C.GL_TEXTURE_2D, id);
 	}
 
 	public void bind(int unit) {
-		GL11.glBindTexture(GL11C.GL_TEXTURE_2D, id);
-		GL33.glActiveTexture(unit);
+		bind();
+		GL33C.glActiveTexture(unit);
 	}
 
 	public void unbind() {
 		GL11.glBindTexture(GL11C.GL_TEXTURE_2D, 0);
+	}
+	
+	@Override
+	public void dispose() {
+		GL11C.glDeleteTextures(id);
+		this.id = INVALID_ID;
+	}
+	
+	@Override
+	public String toString() {
+		return "Texture[ id= " + id + "]";
 	}
 }

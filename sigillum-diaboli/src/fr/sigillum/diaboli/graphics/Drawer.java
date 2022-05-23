@@ -6,6 +6,7 @@ import java.nio.IntBuffer;
 
 import org.joml.FrustumIntersection;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
@@ -18,6 +19,9 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import fr.alchemy.utilities.file.FileUtils;
+import fr.sigillum.diaboli.asset.Assets;
+import fr.sigillum.diaboli.asset.Assets.AssetKey;
+import fr.sigillum.diaboli.graphics.gl.Texture;
 
 public class Drawer {
 
@@ -25,6 +29,8 @@ public class Drawer {
 
 	private static final int DATA = 0;
 	private static final int INDICES = 1;
+
+	public static final AssetKey GRASS = AssetKey.of("texture", "grass");
 
 	private FloatBuffer data = null;
 
@@ -36,7 +42,7 @@ public class Drawer {
 
 	private int[] vbo = { INVALID_ID, INVALID_ID };
 
-	private Matrix4f projectionMatrix, viewMatrix, projViewMatrix;
+	private Matrix4f projectionMatrix, viewMatrix, modelMatrix, projViewMatrix;
 
 	private final FrustumIntersection frustum = new FrustumIntersection();
 
@@ -44,17 +50,13 @@ public class Drawer {
 
 	private int currentIndex;
 
-	// TODO: Better managing of textures.
-	Texture soil;
-	
 	public Drawer(int rectangleSize) {
 		this.data = MemoryUtil.memAllocFloat(16 * rectangleSize);
 		this.indices = MemoryUtil.memAllocInt(6 * rectangleSize);
 		this.projectionMatrix = new Matrix4f();
 		this.viewMatrix = new Matrix4f();
+		this.modelMatrix = new Matrix4f();
 		this.projViewMatrix = new Matrix4f();
-		
-		this.soil = new Texture("/textures/soil.png");
 	}
 
 	public void begin() {
@@ -93,6 +95,22 @@ public class Drawer {
 		drawRectangle(x, y0, y1, z, 1.0f);
 	}
 
+	public void drawSprite(float x, float width, float y, float z, float height) {
+		drawSprite(x, width, y, z, height, 1.0f);
+	}
+
+	public void drawSprite(float x, float width, float y, float z, float height, float brightness) {
+		var i = currentIndex;
+		this.indices.put(i).put(i + 1).put(i + 3)
+				.put(i + 3).put(i + 1).put(i + 2);
+		currentIndex += 4;
+
+		drawVertex(x, y + 2, z, brightness, 0f, 0f);
+		drawVertex(x, y, z, brightness, 0f, 1f);
+		drawVertex(x + width, y, z + height, brightness, 1f, 1.0f);
+		drawVertex(x + width, y + 2, z + height, brightness, 1f, 0.0f);
+	}
+
 	public void drawVertPlane(float x0, float z0, float x1, float z1, float y, float height) {
 		var i = currentIndex;
 		this.indices.put(i).put(i + 1).put(i + 2)
@@ -127,30 +145,25 @@ public class Drawer {
 		drawVertex(x, y, z, 1.0f, u, v);
 	}
 
+	public void useTexture() {
+		Texture tex = Assets.get().getTexture(GRASS);
+		useTexture(tex);
+	}
+
 	public void useTexture(Texture texture) {
 		// Force create the program.
 		if (program == INVALID_ID) {
 			createProgram();
 			GL20C.glUseProgram(program);
 		}
-		
+
 		texture.bind(0);
 		uniformInt("texture_sampler", 0);
 	}
-	
-	public void useTexture() {
-		// Force create the program.
-		if (program == INVALID_ID) {
-			createProgram();
-			GL20C.glUseProgram(program);
-		}
-		
-		soil.bind(0);
-		uniformInt("texture_sampler", 0);
-	}
-	
+
 	public void unbindTexture() {
-		soil.unbind();
+		Texture tex = Assets.get().getTexture(GRASS);
+		tex.unbind();
 		uniformInt("texture_sampler", -1);
 	}
 
@@ -179,14 +192,49 @@ public class Drawer {
 				.translate(-position.x(), -position.y(), -position.z());
 
 		matrix4f("viewMatrix", viewMatrix);
+		uniformVec3("camPos", position);
+
 		projViewMatrix.identity().set(projectionMatrix).mul(viewMatrix);
 		frustum.set(projViewMatrix, false);
+	}
+
+	public void viewMatrixBillboard(Vector3f position, Vector2f rotation) {
+		// Force create the program.
+		if (program == INVALID_ID) {
+			createProgram();
+			GL20C.glUseProgram(program);
+		}
+
+		this.viewMatrix.identity().rotate((float) Math.toRadians(rotation.x()), new Vector3f(1, 0, 0))
+				.rotate((float) Math.toRadians(rotation.y()), new Vector3f(0, 1, 0))
+				.translate(-position.x(), -position.y(), -position.z());
+
+		this.modelMatrix.lookAt(new Vector3f(0, 0, 0), position, new Vector3f(0, 1, 0));
+		this.modelMatrix.setRotationXYZ(0, modelMatrix.getNormalizedRotation(new Quaternionf()).y, 0);
+
+		matrix4f("viewMatrix", viewMatrix);
+		matrix4f("model", modelMatrix);
+
+		projViewMatrix.identity().set(projectionMatrix).mul(viewMatrix);
+		frustum.set(projViewMatrix, false);
+	}
+
+	public void modelMatrix() {
+		this.modelMatrix.identity();
+		matrix4f("model", modelMatrix);
 	}
 
 	private void matrix4f(String name, Matrix4f matrix) {
 		try (var stack = MemoryStack.stackPush()) {
 			var loc = GL20C.glGetUniformLocation(program, name);
 			GL20C.glUniformMatrix4fv(loc, false, matrix.get(stack.mallocFloat(16)));
+		}
+	}
+
+	private void uniformVec3(String name, Vector3f value) {
+		try (var stack = MemoryStack.stackPush()) {
+			var loc = GL20C.glGetUniformLocation(program, name);
+			GL20C.glUniform3f(loc, value.x(), value.y(), value.z());
 		}
 	}
 

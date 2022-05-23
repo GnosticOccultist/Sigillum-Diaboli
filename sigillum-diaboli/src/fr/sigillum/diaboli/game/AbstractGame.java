@@ -57,6 +57,8 @@ public class AbstractGame {
 				if (now - lastPollTime >= 1000) {
 					game.tps = tps;
 					game.fps = fps;
+					
+					logger.debug(tps + " tps, " + fps + " fps");
 
 					tps = 0;
 					fps = 0;
@@ -78,7 +80,7 @@ public class AbstractGame {
 	}
 
 	protected void initialize() {
-
+		
 	}
 
 	private void internalTick() {

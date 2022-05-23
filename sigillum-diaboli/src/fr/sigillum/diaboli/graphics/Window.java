@@ -32,7 +32,6 @@ import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
-import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import fr.alchemy.utilities.logging.FactoryLogger;
@@ -126,21 +125,6 @@ public final class Window {
 	}
 
 	public void flush() {
-		// Initial resizing of the framebuffer.
-		if (game.getFrames() == 2) {
-			try (var stack = MemoryStack.stackPush()) {
-				var w = stack.mallocInt(1);
-				var h = stack.mallocInt(1);
-				glfwGetFramebufferSize(handle, w, h);
-
-				var width = w.get();
-				var height = h.get();
-				if (width != this.width || height != this.height) {
-					game.resize(width, height);
-				}
-			}
-		}
-
 		glfwSwapBuffers(handle);
 		glfwPollEvents();
 	}
