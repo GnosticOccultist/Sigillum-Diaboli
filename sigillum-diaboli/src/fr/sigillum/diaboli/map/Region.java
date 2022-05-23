@@ -1,8 +1,11 @@
 package fr.sigillum.diaboli.map;
 
+import java.util.function.Predicate;
+
 import org.joml.FrustumIntersection;
 
 import fr.alchemy.utilities.collections.array.Array;
+import fr.alchemy.utilities.collections.array.ArrayCollectors;
 import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.map.entity.Entity;
 import fr.sigillum.diaboli.map.entity.Player;
@@ -113,6 +116,11 @@ public class Region {
 				}
 			}
 		}
+	}
+	
+	public Array<Entity> getEntities(Predicate<Entity> filter) {
+		return entities.stream().filter(filter)
+				.collect(ArrayCollectors.toArray(Entity.class));
 	}
 	
 	public boolean shouldRender(FrustumIntersection frustum) {

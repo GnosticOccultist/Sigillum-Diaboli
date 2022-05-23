@@ -8,6 +8,8 @@ import fr.alchemy.utilities.logging.FactoryLogger;
 import fr.alchemy.utilities.logging.Logger;
 import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.map.entity.Entity;
+import fr.sigillum.diaboli.map.entity.Player;
+import fr.sigillum.diaboli.map.entity.traits.SpriteTrait;
 
 public class World {
 
@@ -37,11 +39,9 @@ public class World {
 				unloadRegion(region);
 			}
 		}
-
-		logger.info("Active regions: " + regions.size() + " - " + regionCache.size());
 	}
 
-	public void render(Drawer drawer) {
+	public void render(Drawer drawer, Player player) {
 		var frustum = drawer.getFrustum();
 		
 		drawer.useTexture();
@@ -54,6 +54,9 @@ public class World {
 			drawer.begin();
 			region.render(drawer, frustum);
 			drawer.end();
+			
+			region.getEntities(e -> e.getTrait(SpriteTrait.class).isPresent()).stream()
+					.map(e -> e.getTrait(SpriteTrait.class).get()).forEach(t -> t.render(drawer, player));
 		}
 	}
 

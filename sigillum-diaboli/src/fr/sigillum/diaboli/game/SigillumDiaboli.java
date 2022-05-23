@@ -1,13 +1,18 @@
 package fr.sigillum.diaboli.game;
 
+import java.util.UUID;
+
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
 
+import fr.sigillum.diaboli.asset.Assets;
 import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.graphics.Window;
 import fr.sigillum.diaboli.input.Input;
 import fr.sigillum.diaboli.map.World;
+import fr.sigillum.diaboli.map.entity.Entity;
 import fr.sigillum.diaboli.map.entity.Player;
+import fr.sigillum.diaboli.map.entity.traits.SpriteTrait;
 
 public class SigillumDiaboli extends AbstractGame {
 
@@ -28,14 +33,20 @@ public class SigillumDiaboli extends AbstractGame {
 		this.window = Window.create(this, "Sigillum-Diaboli", 1280, 720);
 		this.input = new Input(window);
 		this.input.grab();
-		this.drawer = new Drawer(32 * 32 * 3);
 
-		resize(window.getWidth(), window.getHeight());
+		Assets.initialize();
+
+		this.drawer = new Drawer(32 * 32 * 3);
+		this.drawer.projectionMatrix(window.getWidth(), window.getHeight());
 
 		player = new Player(input, 0, 10, 0);
-		
+
 		this.world = new World();
 		this.world.add(player);
+
+		var monkNpc = new Entity(UUID.randomUUID(), 0, 0, 0);
+		monkNpc.addTrait(new SpriteTrait("monk"));
+		world.add(monkNpc);
 	}
 
 	@Override
@@ -74,8 +85,8 @@ public class SigillumDiaboli extends AbstractGame {
 		if (player != null) {
 			drawer.viewMatrix(player.getPosition(), player.getRotation());
 		}
-		
-		world.render(drawer);
+
+		world.render(drawer, player);
 	}
 
 	public void resize(int width, int height) {
@@ -88,6 +99,8 @@ public class SigillumDiaboli extends AbstractGame {
 		logger.info("Disposing active resources...");
 
 		drawer.cleanup();
+
+		Assets.get().dispose();
 
 		window.destroy();
 

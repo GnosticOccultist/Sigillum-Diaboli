@@ -1,13 +1,15 @@
 package fr.sigillum.diaboli.map.entity;
 
+import java.util.Optional;
 import java.util.UUID;
-
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
+import fr.alchemy.utilities.collections.array.Array;
 import fr.sigillum.diaboli.map.Region;
+import fr.sigillum.diaboli.map.entity.traits.Trait;
 
-public abstract class Entity {
+public class Entity {
 
 	protected volatile Region region;
 
@@ -16,7 +18,7 @@ public abstract class Entity {
 	protected final Vector3f position;
 	protected final Vector2f rotation;
 
-	protected final Vector3f velocity;
+	private final Array<Trait> traits = Array.ofType(Trait.class);
 
 	public Entity() {
 		this(UUID.randomUUID());
@@ -30,15 +32,41 @@ public abstract class Entity {
 		this.id = id;
 		this.position = new Vector3f(x, y, z);
 		this.rotation = new Vector2f();
-		this.velocity = new Vector3f();
+	}
+
+	public Entity addTrait(Trait trait) {
+		this.traits.add(trait);
+		trait.setEntity(this);
+		return this;
+	}
+
+	public Entity addTraits(Trait... traits) {
+		for (var trait : traits) {
+			addTrait(trait);
+		}
+		return this;
+	}
+
+	public Entity removeTrait(Trait trait) {
+		this.traits.remove(trait);
+		trait.setEntity(null);
+		return this;
+	}
+
+	public <T extends Trait> Optional<T> getTrait(Class<T> type) {
+		return traits.stream().filter(type::isInstance).map(type::cast).findAny();
 	}
 
 	public void tick() {
-
+		traits.forEach(Trait::tick);
 	}
 
 	public void move(float x, float y, float z) {
 		this.position.add(x, y, z);
+	}
+
+	public boolean isOnGround() {
+		return position.y <= 1.85f;
 	}
 
 	public boolean shouldRemove() {
@@ -73,7 +101,7 @@ public abstract class Entity {
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " [id= " + id + ", position= " + 
-				position.toString() + ", rotation= " + rotation + "]";
+		return getClass().getSimpleName() + " [id= " + id + ", position= " + position.toString() + ", rotation= "
+				+ rotation + "]";
 	}
 }
