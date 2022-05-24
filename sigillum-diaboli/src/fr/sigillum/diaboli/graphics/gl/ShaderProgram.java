@@ -11,15 +11,30 @@ import org.lwjgl.opengl.GL20C;
 import org.lwjgl.system.MemoryStack;
 
 import fr.alchemy.utilities.file.FileUtils;
+import fr.alchemy.utilities.logging.FactoryLogger;
+import fr.alchemy.utilities.logging.Logger;
 import fr.sigillum.diaboli.asset.IAsset;
 
 public class ShaderProgram implements IAsset {
 
+	private static final Logger logger = FactoryLogger.getLogger("sigillum-diaboli.graphics.gl");
+
+	/**
+	 * The currently used shader program by the OpenGL context, or null.
+	 */
 	private static ShaderProgram CURRENT = null;
-	
+
+	/**
+	 * The name of the shader program.
+	 */
+	private final String name;
+	/**
+	 * The shader program identifier.
+	 */
 	private int id = INVALID_ID;
 
-	public ShaderProgram(Path vertex, Path fragment) {
+	private ShaderProgram(String name, Path vertex, Path fragment) {
+		this.name = name;
 		createProgram(vertex, fragment);
 	}
 
@@ -27,8 +42,8 @@ public class ShaderProgram implements IAsset {
 		try (var reader = FileUtils.readBuffered(Files.newInputStream(path))) {
 
 			String line = null;
-			Path vertex = path.getParent();
-			Path fragment = path.getParent();
+			var vertex = path.getParent();
+			var fragment = path.getParent();
 			while ((line = reader.readLine()) != null) {
 				line = line.trim();
 				var parts = line.split("=");
@@ -40,25 +55,26 @@ public class ShaderProgram implements IAsset {
 
 			}
 
-			return new ShaderProgram(vertex, fragment);
+			var name = FileUtils.getFileName(path);
+			return new ShaderProgram(name, vertex, fragment);
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			logger.error("Failed to load ShaderProgram from file: '" + path + "'!", ex);
 		}
 
 		return null;
 	}
 
-	private void createProgram(Path vertex, Path fragment) {
+	private void createProgram(Path vertexPath, Path fragmentPath) {
 		this.id = GL20C.glCreateProgram();
 
-		try (var buf = FileUtils.readBuffered(Files.newInputStream(vertex))) {
-			StringBuilder sb = new StringBuilder();
+		try (var buf = FileUtils.readBuffered(Files.newInputStream(vertexPath))) {
+			var sb = new StringBuilder();
 			String line = null;
 			while ((line = buf.readLine()) != null) {
 				sb.append(line).append("\n");
 			}
 
-			int shaderID = GL20C.glCreateShader(GL20C.GL_VERTEX_SHADER);
+			var shaderID = GL20C.glCreateShader(GL20C.GL_VERTEX_SHADER);
 			GL20C.glShaderSource(shaderID, sb);
 			GL20C.glCompileShader(shaderID);
 
@@ -69,17 +85,17 @@ public class ShaderProgram implements IAsset {
 
 			GL20C.glAttachShader(id, shaderID);
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			logger.error("Failed to load vertex shader source from file: '" + vertexPath + "'!", ex);
 		}
 
-		try (var buf = FileUtils.readBuffered(Files.newInputStream(fragment))) {
-			StringBuilder sb = new StringBuilder();
+		try (var buf = FileUtils.readBuffered(Files.newInputStream(fragmentPath))) {
+			var sb = new StringBuilder();
 			String line = null;
 			while ((line = buf.readLine()) != null) {
 				sb.append(line).append("\n");
 			}
 
-			int shaderID = GL20C.glCreateShader(GL20C.GL_FRAGMENT_SHADER);
+			var shaderID = GL20C.glCreateShader(GL20C.GL_FRAGMENT_SHADER);
 			GL20C.glShaderSource(shaderID, sb);
 			GL20C.glCompileShader(shaderID);
 
@@ -90,7 +106,7 @@ public class ShaderProgram implements IAsset {
 
 			GL20C.glAttachShader(id, shaderID);
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			logger.error("Failed to load vertex shader source from file: '" + fragmentPath + "'!", ex);
 		}
 
 		GL20C.glLinkProgram(id);
@@ -114,6 +130,7 @@ public class ShaderProgram implements IAsset {
 	}
 
 	public void matrix4f(String name, Matrix4f matrix) {
+		use();
 		try (var stack = MemoryStack.stackPush()) {
 			var loc = GL20C.glGetUniformLocation(id, name);
 			GL20C.glUniformMatrix4fv(loc, false, matrix.get(stack.mallocFloat(16)));
@@ -121,6 +138,7 @@ public class ShaderProgram implements IAsset {
 	}
 
 	public void uniformVec3(String name, Vector3f value) {
+		use();
 		try (var stack = MemoryStack.stackPush()) {
 			var loc = GL20C.glGetUniformLocation(id, name);
 			GL20C.glUniform3f(loc, value.x(), value.y(), value.z());
@@ -128,6 +146,7 @@ public class ShaderProgram implements IAsset {
 	}
 
 	public void uniformInt(String name, int value) {
+		use();
 		try (var stack = MemoryStack.stackPush()) {
 			var loc = GL20C.glGetUniformLocation(id, name);
 			GL20C.glUniform1i(loc, value);
@@ -139,8 +158,13 @@ public class ShaderProgram implements IAsset {
 		if (CURRENT == this) {
 			CURRENT = null;
 		}
-		
+
 		GL20C.glDeleteProgram(id);
 		this.id = INVALID_ID;
+	}
+	
+	@Override
+	public String toString() {
+		return "ShaderProgram [name= " + name + ", id= " + id + "]";
 	}
 }

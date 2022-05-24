@@ -44,7 +44,7 @@ public class World {
 	public void render(Drawer drawer, Player player) {
 		var frustum = drawer.getFrustum();
 
-		drawer.useTexture();
+		drawer.useDefaultTexture();
 
 		for (var region : regions) {
 			if (!region.shouldRender(frustum)) {

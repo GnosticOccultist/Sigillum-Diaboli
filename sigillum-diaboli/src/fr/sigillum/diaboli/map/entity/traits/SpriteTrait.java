@@ -28,7 +28,7 @@ public class SpriteTrait extends Trait {
 		drawer.end();
 		drawer.modelMatrix();
 		drawer.viewMatrix(player.getPosition(), player.getRotation());
-		drawer.useTexture();
+		drawer.useDefaultTexture();
 	}
 
 	protected Texture getTexture() {

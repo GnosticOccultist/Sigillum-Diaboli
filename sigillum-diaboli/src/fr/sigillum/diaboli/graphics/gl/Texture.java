@@ -69,7 +69,7 @@ public class Texture implements IAsset {
 		GL33C.glActiveTexture(unit);
 	}
 
-	public void unbind() {
+	public static void unbind() {
 		GL11.glBindTexture(GL11C.GL_TEXTURE_2D, 0);
 	}
 	

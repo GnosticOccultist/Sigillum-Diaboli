@@ -17,12 +17,11 @@ import org.lwjgl.system.MemoryUtil;
 
 import fr.sigillum.diaboli.asset.Assets;
 import fr.sigillum.diaboli.asset.Assets.AssetKey;
+import fr.sigillum.diaboli.graphics.gl.IDisposable;
 import fr.sigillum.diaboli.graphics.gl.ShaderProgram;
 import fr.sigillum.diaboli.graphics.gl.Texture;
 
-public class Drawer {
-
-	private static final int INVALID_ID = -1;
+public class Drawer implements IDisposable {
 
 	private static final int DATA = 0;
 	private static final int INDICES = 1;
@@ -143,23 +142,19 @@ public class Drawer {
 		drawVertex(x, y, z, 1.0f, u, v);
 	}
 
-	public void useTexture() {
+	public void useDefaultTexture() {
 		Texture tex = Assets.get().getTexture(GRASS);
 		useTexture(tex);
 	}
 
 	public void useTexture(Texture texture) {
-		var program = Assets.get().getShader(DEFAULT_SHADER);
-		program.use();
-
-		texture.bind(0);
-		defaultShader().uniformInt("texture_sampler", 0);
-	}
-
-	public void unbindTexture() {
-		Texture tex = Assets.get().getTexture(GRASS);
-		tex.unbind();
-		defaultShader().uniformInt("texture_sampler", -1);
+		if (texture != null) {
+			texture.bind(0);
+			defaultShader().uniformInt("texture_sampler", 0);
+		} else {
+			Texture.unbind();
+			defaultShader().uniformInt("texture_sampler", -1);
+		}
 	}
 
 	public void projectionMatrix(int width, int height) {
@@ -254,7 +249,8 @@ public class Drawer {
 		this.drawing = false;
 	}
 
-	public void cleanup() {
+	@Override
+	public void dispose() {
 		GL30C.glDeleteVertexArrays(vao);
 		this.vao = INVALID_ID;
 
