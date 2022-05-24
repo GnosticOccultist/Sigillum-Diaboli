@@ -11,7 +11,9 @@ import java.util.function.Function;
 import fr.alchemy.utilities.file.FileUtils;
 import fr.alchemy.utilities.logging.FactoryLogger;
 import fr.alchemy.utilities.logging.Logger;
+import fr.sigillum.diaboli.graphics.gl.ShaderProgram;
 import fr.sigillum.diaboli.graphics.gl.Texture;
+import fr.sigillum.diaboli.graphics.obj.OBJModel;
 
 public class Assets {
 	
@@ -35,6 +37,7 @@ public class Assets {
 	}
 	
 	private Assets() {
+		registerAll("shader", "shader", Paths.get("resources/assets/shaders"), ShaderProgram::load);
 		registerAll("texture", "png", Paths.get("resources/assets/textures"), Texture::new);
 		registerAll("sprite", "png", Paths.get("resources/assets/sprites"), Texture::new);
 	}
@@ -55,6 +58,10 @@ public class Assets {
 	
 	public Texture getTexture(AssetKey key) {
 		return getSafe(Texture.class, key).orElseGet(() -> getMissingTexture());
+	}
+	
+	public ShaderProgram getShader(AssetKey key) {
+		return getSafe(ShaderProgram.class, key).orElseThrow();
 	}
 	
 	public <A extends IAsset> Optional<A> getSafe(Class<A> type, AssetKey key) {

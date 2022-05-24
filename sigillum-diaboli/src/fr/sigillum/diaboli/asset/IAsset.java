@@ -1,8 +1,8 @@
 package fr.sigillum.diaboli.asset;
 
-public interface IAsset {
+import fr.sigillum.diaboli.graphics.gl.IDisposable;
 
-	public static final int INVALID_ID = -1;
+public interface IAsset extends IDisposable {
+
 	
-	void dispose();
 }
