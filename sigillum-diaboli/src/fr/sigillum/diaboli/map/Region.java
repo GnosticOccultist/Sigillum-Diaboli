@@ -15,7 +15,7 @@ import fr.sigillum.diaboli.util.BoundingBox;
 public class Region {
 
 	public static final int WALL_SIZE = 3;
-	
+
 	public static final int UNLOAD_TICK_TIME = 100;
 
 	public static final int SIZE = 32;
@@ -23,11 +23,11 @@ public class Region {
 	private final int x, z;
 
 	private final World world;
-	
+
 	private final BoundingBox box;
 
 	private final RegionData data;
-	
+
 	private int unloadTimer = UNLOAD_TICK_TIME;
 
 	private final Array<Entity> entities = Array.ofType(Entity.class);
@@ -64,7 +64,7 @@ public class Region {
 							region.unloadTimer = UNLOAD_TICK_TIME;
 						}
 					}
-					
+
 					var rx = (int) Math.floor(entity.getPosition().x() / (double) Region.SIZE);
 					var rz = (int) Math.floor(entity.getPosition().z() / (double) Region.SIZE);
 					// Player changed regions.
@@ -117,12 +117,11 @@ public class Region {
 			}
 		}
 	}
-	
+
 	public Array<Entity> getEntities(Predicate<Entity> filter) {
-		return entities.stream().filter(filter)
-				.collect(ArrayCollectors.toArray(Entity.class));
+		return entities.stream().filter(filter).collect(ArrayCollectors.toArray(Entity.class));
 	}
-	
+
 	public boolean shouldRender(FrustumIntersection frustum) {
 		return frustum.testAab(box.min(), box.max());
 	}
@@ -133,19 +132,19 @@ public class Region {
 		}
 		return data.tiles[x + z * SIZE];
 	}
-	
+
 	boolean decreaseTimer() {
 		return --unloadTimer <= 0;
 	}
-	
+
 	public int getX() {
 		return x;
 	}
-	
+
 	public int getZ() {
 		return z;
 	}
-	
+
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + "[ x= " + x + " z= " + z + "]";

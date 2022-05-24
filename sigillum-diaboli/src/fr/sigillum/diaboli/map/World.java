@@ -43,7 +43,7 @@ public class World {
 
 	public void render(Drawer drawer, Player player) {
 		var frustum = drawer.getFrustum();
-		
+
 		drawer.useTexture();
 
 		for (var region : regions) {
@@ -54,7 +54,7 @@ public class World {
 			drawer.begin();
 			region.render(drawer, frustum);
 			drawer.end();
-			
+
 			region.getEntities(e -> e.getTrait(SpriteTrait.class).isPresent()).stream()
 					.map(e -> e.getTrait(SpriteTrait.class).get()).forEach(t -> t.render(drawer, player));
 		}

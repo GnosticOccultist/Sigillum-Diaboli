@@ -11,7 +11,7 @@ import fr.sigillum.diaboli.map.tiles.Tile;
 public class RegionData {
 
 	private static final Logger logger = FactoryLogger.getLogger("sigillum-diaboli.map.region");
-	
+
 	public static final Tile FLOOR = new Tile();
 	public static final Tile WALL = new Tile(true);
 
@@ -24,7 +24,7 @@ public class RegionData {
 			if (image.getWidth() != Region.SIZE || image.getHeight() != Region.SIZE) {
 				throw new RuntimeException("The given image region '" + path + "' isn't 32x32 pixels!");
 			}
-			
+
 			var pixels = new int[Region.SIZE * Region.SIZE];
 			image.getRGB(0, 0, Region.SIZE, Region.SIZE, pixels, 0, Region.SIZE);
 
