@@ -1,6 +1,5 @@
 package fr.sigillum.diaboli.graphics;
 
-import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
@@ -13,14 +12,12 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL15C;
-import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL30C;
-import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
-import fr.alchemy.utilities.file.FileUtils;
 import fr.sigillum.diaboli.asset.Assets;
 import fr.sigillum.diaboli.asset.Assets.AssetKey;
+import fr.sigillum.diaboli.graphics.gl.ShaderProgram;
 import fr.sigillum.diaboli.graphics.gl.Texture;
 
 public class Drawer {
@@ -31,6 +28,8 @@ public class Drawer {
 	private static final int INDICES = 1;
 
 	public static final AssetKey GRASS = AssetKey.of("texture", "grass");
+	
+	public static final AssetKey DEFAULT_SHADER = AssetKey.of("shader", "base");
 
 	private FloatBuffer data = null;
 
@@ -45,8 +44,6 @@ public class Drawer {
 	private Matrix4f projectionMatrix, viewMatrix, modelMatrix, projViewMatrix;
 
 	private final FrustumIntersection frustum = new FrustumIntersection();
-
-	private int program = INVALID_ID;
 
 	private int currentIndex;
 
@@ -86,11 +83,8 @@ public class Drawer {
 			GL15C.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indices.capacity() * 4, GL15C.GL_DYNAMIC_DRAW);
 		}
 
-		if (program == INVALID_ID) {
-			createProgram();
-		}
-
-		GL20C.glUseProgram(program);
+		var program = Assets.get().getShader(DEFAULT_SHADER);
+		program.use();
 
 		this.drawing = true;
 	}
@@ -155,59 +149,47 @@ public class Drawer {
 	}
 
 	public void useTexture(Texture texture) {
-		// Force create the program.
-		if (program == INVALID_ID) {
-			createProgram();
-			GL20C.glUseProgram(program);
-		}
+		var program = Assets.get().getShader(DEFAULT_SHADER);
+		program.use();
 
 		texture.bind(0);
-		uniformInt("texture_sampler", 0);
+		defaultShader().uniformInt("texture_sampler", 0);
 	}
 
 	public void unbindTexture() {
 		Texture tex = Assets.get().getTexture(GRASS);
 		tex.unbind();
-		uniformInt("texture_sampler", -1);
+		defaultShader().uniformInt("texture_sampler", -1);
 	}
 
 	public void projectionMatrix(int width, int height) {
-		// Force create the program.
-		if (program == INVALID_ID) {
-			createProgram();
-			GL20C.glUseProgram(program);
-		}
+		var program = Assets.get().getShader(DEFAULT_SHADER);
+		program.use();
 
 		var ratio = (float) width / (float) height;
 		this.projectionMatrix.identity().perspective(70.0F, ratio, 0.1f, 1000.0f);
 
-		matrix4f("projectionMatrix", projectionMatrix);
+		defaultShader().matrix4f("projectionMatrix", projectionMatrix);
 	}
 
 	public void viewMatrix(Vector3f position, Vector2f rotation) {
-		// Force create the program.
-		if (program == INVALID_ID) {
-			createProgram();
-			GL20C.glUseProgram(program);
-		}
+		var program = Assets.get().getShader(DEFAULT_SHADER);
+		program.use();
 
 		this.viewMatrix.identity().rotate((float) Math.toRadians(rotation.x()), new Vector3f(1, 0, 0))
 				.rotate((float) Math.toRadians(rotation.y()), new Vector3f(0, 1, 0))
 				.translate(-position.x(), -position.y(), -position.z());
 
-		matrix4f("viewMatrix", viewMatrix);
-		uniformVec3("camPos", position);
+		defaultShader().matrix4f("viewMatrix", viewMatrix);
+		defaultShader().uniformVec3("camPos", position);
 
 		projViewMatrix.identity().set(projectionMatrix).mul(viewMatrix);
 		frustum.set(projViewMatrix, false);
 	}
 
 	public void viewMatrixBillboard(Vector3f position, Vector2f rotation) {
-		// Force create the program.
-		if (program == INVALID_ID) {
-			createProgram();
-			GL20C.glUseProgram(program);
-		}
+		var program = Assets.get().getShader(DEFAULT_SHADER);
+		program.use();
 
 		this.viewMatrix.identity().rotate((float) Math.toRadians(rotation.x()), new Vector3f(1, 0, 0))
 				.rotate((float) Math.toRadians(rotation.y()), new Vector3f(0, 1, 0))
@@ -216,8 +198,8 @@ public class Drawer {
 		this.modelMatrix.lookAt(new Vector3f(0, 0, 0), position, new Vector3f(0, 1, 0));
 		this.modelMatrix.setRotationXYZ(0, modelMatrix.getNormalizedRotation(new Quaternionf()).y, 0);
 
-		matrix4f("viewMatrix", viewMatrix);
-		matrix4f("model", modelMatrix);
+		defaultShader().matrix4f("viewMatrix", viewMatrix);
+		defaultShader().matrix4f("model", modelMatrix);
 
 		projViewMatrix.identity().set(projectionMatrix).mul(viewMatrix);
 		frustum.set(projViewMatrix, false);
@@ -225,28 +207,13 @@ public class Drawer {
 
 	public void modelMatrix() {
 		this.modelMatrix.identity();
-		matrix4f("model", modelMatrix);
+		defaultShader().matrix4f("model", modelMatrix);
 	}
-
-	private void matrix4f(String name, Matrix4f matrix) {
-		try (var stack = MemoryStack.stackPush()) {
-			var loc = GL20C.glGetUniformLocation(program, name);
-			GL20C.glUniformMatrix4fv(loc, false, matrix.get(stack.mallocFloat(16)));
-		}
-	}
-
-	private void uniformVec3(String name, Vector3f value) {
-		try (var stack = MemoryStack.stackPush()) {
-			var loc = GL20C.glGetUniformLocation(program, name);
-			GL20C.glUniform3f(loc, value.x(), value.y(), value.z());
-		}
-	}
-
-	private void uniformInt(String name, int value) {
-		try (var stack = MemoryStack.stackPush()) {
-			var loc = GL20C.glGetUniformLocation(program, name);
-			GL20C.glUniform1i(loc, value);
-		}
+	
+	private ShaderProgram defaultShader() {
+		var program = Assets.get().getShader(DEFAULT_SHADER);
+		program.use();
+		return program;
 	}
 
 	public void end() {
@@ -301,72 +268,11 @@ public class Drawer {
 		MemoryUtil.memFree(indices);
 		this.indices = null;
 
-		GL20C.glDeleteProgram(program);
-		this.program = INVALID_ID;
-
 		this.currentIndex = 0;
 		this.drawing = false;
 	}
 
 	public FrustumIntersection getFrustum() {
 		return frustum;
-	}
-
-	private void createProgram() {
-		program = GL20C.glCreateProgram();
-
-		try (var buf = FileUtils.readBuffered(Drawer.class.getResourceAsStream("/shaders/base.vert"))) {
-			StringBuilder sb = new StringBuilder();
-			String line = null;
-			while ((line = buf.readLine()) != null) {
-				sb.append(line).append("\n");
-			}
-
-			int id = GL20C.glCreateShader(GL20C.GL_VERTEX_SHADER);
-			GL20C.glShaderSource(id, sb);
-			GL20C.glCompileShader(id);
-
-			if (GL20C.glGetShaderi(id, GL20C.GL_COMPILE_STATUS) == GL11C.GL_FALSE) {
-				throw new RuntimeException(
-						"An error occured when compiling vertex shader " + GL20C.glGetShaderInfoLog(id, 1024));
-			}
-
-			GL20C.glAttachShader(program, id);
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
-
-		try (var buf = FileUtils.readBuffered(Drawer.class.getResourceAsStream("/shaders/base.frag"))) {
-			StringBuilder sb = new StringBuilder();
-			String line = null;
-			while ((line = buf.readLine()) != null) {
-				sb.append(line).append("\n");
-			}
-
-			int id = GL20C.glCreateShader(GL20C.GL_FRAGMENT_SHADER);
-			GL20C.glShaderSource(id, sb);
-			GL20C.glCompileShader(id);
-
-			if (GL20C.glGetShaderi(id, GL20C.GL_COMPILE_STATUS) == GL11C.GL_FALSE) {
-				throw new RuntimeException(
-						"An error occured when compiling fragment shader " + GL20C.glGetShaderInfoLog(id, 1024));
-			}
-
-			GL20C.glAttachShader(program, id);
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
-
-		GL20C.glLinkProgram(program);
-		if (GL20C.glGetProgrami(program, GL20C.GL_LINK_STATUS) == GL11C.GL_FALSE) {
-			throw new RuntimeException(
-					"An error occured when linking shader program " + GL20C.glGetProgramInfoLog(program, 1024));
-		}
-
-		GL20C.glValidateProgram(program);
-		if (GL20C.glGetProgrami(program, GL20C.GL_VALIDATE_STATUS) == GL11C.GL_FALSE) {
-			throw new RuntimeException(
-					"An error occured when validating shader program " + GL20C.glGetProgramInfoLog(program, 1024));
-		}
 	}
 }
