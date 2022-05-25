@@ -162,4 +162,9 @@ public class Mesh {
 		MemoryUtil.memFree(indices);
 		this.indices = null;
 	}
+	
+	@Override
+	public String toString() {
+		return "Mesh [ id= " + vao + " ]"; 
+	}
 }

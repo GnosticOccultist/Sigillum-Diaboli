@@ -25,6 +25,8 @@ public class OBJModel implements IAsset {
 		Array<Vector3f> normals = Array.ofType(Vector3f.class);
 		Array<IndexGroup> indices = Array.ofType(IndexGroup.class);
 
+		String modelName = null;
+
 		try (var reader = FileUtils.readBuffered(Files.newInputStream(path))) {
 
 			String line = null;
@@ -46,38 +48,41 @@ public class OBJModel implements IAsset {
 
 				var prefix = tokens[0];
 				switch (prefix) {
-				case "v":
-					var vertex = new Vector3f(Float.valueOf(tokens[1]), Float.valueOf(tokens[2]),
-							Float.valueOf(tokens[3]));
-					positions.add(vertex);
-					break;
-				case "vt":
-					var coords = new Vector2f(Float.valueOf(tokens[1]), Float.valueOf(tokens[2]));
-					textureCoords.add(coords);
-					break;
-				case "vn":
-					var normal = new Vector3f(Float.valueOf(tokens[1]), Float.valueOf(tokens[2]),
-							Float.valueOf(tokens[3]));
-					normals.add(normal);
-					break;
-				case "f":
-					int size = tokens.length - 1;
-					// Support for triangle fans.
-					if (tokens.length == 5) {
-						size = 6;
-					}
-					var indexGroup = new IndexGroup[size];
-					for (int i = 0; i < tokens.length - 1; i++) {
-						indexGroup[i] = new IndexGroup(tokens[i + 1], currentSmoothGroup);
-					}
-					// If we have 4 elements per face, build a triangle fan.
-					if (tokens.length == 5) {
-						indexGroup[3] = new IndexGroup(tokens[0 + 1], currentSmoothGroup);
-						indexGroup[4] = new IndexGroup(tokens[2 + 1], currentSmoothGroup);
-						indexGroup[5] = new IndexGroup(tokens[3 + 1], currentSmoothGroup);
-					}
-					indices.addAll(indexGroup);
-					break;
+					case "v":
+						var vertex = new Vector3f(Float.valueOf(tokens[1]), Float.valueOf(tokens[2]),
+								Float.valueOf(tokens[3]));
+						positions.add(vertex);
+						break;
+					case "vt":
+						var coords = new Vector2f(Float.valueOf(tokens[1]), Float.valueOf(tokens[2]));
+						textureCoords.add(coords);
+						break;
+					case "vn":
+						var normal = new Vector3f(Float.valueOf(tokens[1]), Float.valueOf(tokens[2]),
+								Float.valueOf(tokens[3]));
+						normals.add(normal);
+						break;
+					case "f":
+						int size = tokens.length - 1;
+						// Support for triangle fans.
+						if (tokens.length == 5) {
+							size = 6;
+						}
+						var indexGroup = new IndexGroup[size];
+						for (int i = 0; i < tokens.length - 1; i++) {
+							indexGroup[i] = new IndexGroup(tokens[i + 1], currentSmoothGroup);
+						}
+						// If we have 4 elements per face, build a triangle fan.
+						if (tokens.length == 5) {
+							indexGroup[3] = new IndexGroup(tokens[0 + 1], currentSmoothGroup);
+							indexGroup[4] = new IndexGroup(tokens[2 + 1], currentSmoothGroup);
+							indexGroup[5] = new IndexGroup(tokens[3 + 1], currentSmoothGroup);
+						}
+						indices.addAll(indexGroup);
+						break;
+					case "o":
+						modelName = tokens[1];
+						break;
 				}
 			}
 		} catch (IOException ex) {
@@ -85,10 +90,16 @@ public class OBJModel implements IAsset {
 			return null;
 		}
 
+		if (modelName == null || modelName.isEmpty()) {
+			modelName = FileUtils.getFileName(path);
+		}
+
 		logger.info("Successfully loaded OBJ model from file '" + path + "'.");
-		var model = new OBJModel(positions, textureCoords, normals, indices);
+		var model = new OBJModel(modelName, positions, textureCoords, normals, indices);
 		return model;
 	}
+
+	private final String name;
 
 	private final Array<Vector3f> positions;
 	private final Array<Vector2f> textureCoords;
@@ -97,8 +108,9 @@ public class OBJModel implements IAsset {
 
 	private Mesh mesh = null;
 
-	private OBJModel(Array<Vector3f> positions, Array<Vector2f> textureCoords, Array<Vector3f> normals,
+	private OBJModel(String name, Array<Vector3f> positions, Array<Vector2f> textureCoords, Array<Vector3f> normals,
 			Array<IndexGroup> indices) {
+		this.name = name;
 		this.positions = positions;
 		this.textureCoords = textureCoords;
 		this.normals = normals;
@@ -146,6 +158,11 @@ public class OBJModel implements IAsset {
 		}
 
 		mesh = null;
+	}
+
+	@Override
+	public String toString() {
+		return "OBJModel [ name= " + name + ", mesh= " + mesh + "]";
 	}
 
 	protected static class IndexGroup {
