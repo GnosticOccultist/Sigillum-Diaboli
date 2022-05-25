@@ -6,8 +6,10 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
 
 import fr.sigillum.diaboli.asset.Assets;
+import fr.sigillum.diaboli.asset.Assets.AssetKey;
 import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.graphics.Window;
+import fr.sigillum.diaboli.graphics.obj.OBJModel;
 import fr.sigillum.diaboli.input.Input;
 import fr.sigillum.diaboli.map.World;
 import fr.sigillum.diaboli.map.entity.Entity;
@@ -28,6 +30,8 @@ public class SigillumDiaboli extends AbstractGame {
 
 	private Player player;
 
+	OBJModel model;
+
 	@Override
 	protected void initialize() {
 		this.window = Window.create(this, "Sigillum-Diaboli", 1280, 720);
@@ -47,6 +51,8 @@ public class SigillumDiaboli extends AbstractGame {
 		var monkNpc = new Entity(UUID.randomUUID(), 0, 0, 0);
 		monkNpc.addTrait(new SpriteTrait("monk"));
 		world.add(monkNpc);
+
+		model = Assets.get().getModel(AssetKey.of("model", "small_medieval_house"));
 	}
 
 	@Override
@@ -87,6 +93,8 @@ public class SigillumDiaboli extends AbstractGame {
 		}
 
 		world.render(drawer, player);
+
+		model.render();
 	}
 
 	public void resize(int width, int height) {
@@ -98,7 +106,7 @@ public class SigillumDiaboli extends AbstractGame {
 	protected void shutdown() {
 		logger.info("Disposing active resources...");
 
-		drawer.cleanup();
+		drawer.dispose();
 
 		Assets.get().dispose();
 

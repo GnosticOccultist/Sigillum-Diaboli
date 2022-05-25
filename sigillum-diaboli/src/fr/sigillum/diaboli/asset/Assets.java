@@ -40,6 +40,9 @@ public class Assets {
 		registerAll("shader", "shader", Paths.get("resources/assets/shaders"), ShaderProgram::load);
 		registerAll("texture", "png", Paths.get("resources/assets/textures"), Texture::new);
 		registerAll("sprite", "png", Paths.get("resources/assets/sprites"), Texture::new);
+		registerAll("model", "obj", Paths.get("resources/assets/models"), OBJModel::load);
+		
+		logger.info("Successfully registered " + assets.size() + " assets");
 	}
 	
 	private void registerAll(String type, String extension, Path path, Function<Path, IAsset> loader) {
@@ -59,6 +62,10 @@ public class Assets {
 	public Texture getTexture(AssetKey key) {
 		return getSafe(Texture.class, key).orElseGet(() -> getMissingTexture());
 	}
+
+	public OBJModel getModel(AssetKey key) {
+		return getSafe(OBJModel.class, key).orElseThrow();
+	}
 	
 	public ShaderProgram getShader(AssetKey key) {
 		return getSafe(ShaderProgram.class, key).orElseThrow();
@@ -74,6 +81,7 @@ public class Assets {
 	
 	public void dispose() {
 		this.assets.values().forEach(IAsset::dispose);
+		this.assets.clear();
 	}
 	
 	public final static class AssetKey {
