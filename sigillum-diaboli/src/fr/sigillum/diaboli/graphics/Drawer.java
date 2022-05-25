@@ -4,8 +4,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.joml.FrustumIntersection;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
@@ -27,7 +27,7 @@ public class Drawer implements IDisposable {
 	private static final int INDICES = 1;
 
 	public static final AssetKey GRASS = AssetKey.of("texture", "grass");
-	
+
 	public static final AssetKey DEFAULT_SHADER = AssetKey.of("shader", "base");
 
 	private FloatBuffer data = null;
@@ -92,20 +92,20 @@ public class Drawer implements IDisposable {
 		drawRectangle(x, y0, y1, z, 1.0f);
 	}
 
-	public void drawSprite(float x, float width, float y, float z, float height) {
-		drawSprite(x, width, y, z, height, 1.0f);
+	public void drawSprite(float x, float width, float y, float height, float z) {
+		drawSprite(x, width, y, height, z, 1.0f);
 	}
 
-	public void drawSprite(float x, float width, float y, float z, float height, float brightness) {
+	public void drawSprite(float x, float width, float y, float height, float z, float brightness) {
 		var i = currentIndex;
 		this.indices.put(i).put(i + 1).put(i + 3)
 				.put(i + 3).put(i + 1).put(i + 2);
 		currentIndex += 4;
 
-		drawVertex(x, y + 2, z, brightness, 0f, 0f);
-		drawVertex(x, y, z, brightness, 0f, 1f);
-		drawVertex(x + width, y, z + height, brightness, 1f, 1.0f);
-		drawVertex(x + width, y + 2, z + height, brightness, 1f, 0.0f);
+		drawVertex(x - (width / 2), y + height, z, brightness, 0f, 0f);
+		drawVertex(x - (width / 2), y, z, brightness, 0f, 1f);
+		drawVertex(x + (width / 2), y, z, brightness, 1f, 1.0f);
+		drawVertex(x + (width / 2), y + height, z, brightness, 1f, 0.0f);
 	}
 
 	public void drawVertPlane(float x0, float z0, float x1, float z1, float y, float height) {
@@ -182,29 +182,19 @@ public class Drawer implements IDisposable {
 		frustum.set(projViewMatrix, false);
 	}
 
-	public void viewMatrixBillboard(Vector3f position, Vector2f rotation) {
+	public void applyRotMatrix(Matrix3f rotationMatrix) {
 		var program = Assets.get().getShader(DEFAULT_SHADER);
 		program.use();
 
-		this.viewMatrix.identity().rotate((float) Math.toRadians(rotation.x()), new Vector3f(1, 0, 0))
-				.rotate((float) Math.toRadians(rotation.y()), new Vector3f(0, 1, 0))
-				.translate(-position.x(), -position.y(), -position.z());
-
-		this.modelMatrix.lookAt(new Vector3f(0, 0, 0), position, new Vector3f(0, 1, 0));
-		this.modelMatrix.setRotationXYZ(0, modelMatrix.getNormalizedRotation(new Quaternionf()).y, 0);
-
-		defaultShader().matrix4f("viewMatrix", viewMatrix);
+		this.modelMatrix.identity().set(rotationMatrix);
 		defaultShader().matrix4f("model", modelMatrix);
-
-		projViewMatrix.identity().set(projectionMatrix).mul(viewMatrix);
-		frustum.set(projViewMatrix, false);
 	}
 
 	public void modelMatrix() {
 		this.modelMatrix.identity();
 		defaultShader().matrix4f("model", modelMatrix);
 	}
-	
+
 	private ShaderProgram defaultShader() {
 		var program = Assets.get().getShader(DEFAULT_SHADER);
 		program.use();
