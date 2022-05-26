@@ -70,7 +70,6 @@ public class Mesh {
 	public void render() {
 		GL30C.glBindVertexArray(vao);
 		GL15C.glDrawElements(GL11C.GL_TRIANGLES, indices.remaining(), getType(indices), 0);
-		GL30C.glBindVertexArray(0);
 	}
 
 	private int getType(Buffer indices) {

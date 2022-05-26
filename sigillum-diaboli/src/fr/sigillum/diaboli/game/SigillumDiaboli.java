@@ -94,7 +94,7 @@ public class SigillumDiaboli extends AbstractGame {
 
 		world.render(drawer, player);
 
-		model.render();
+		model.render(drawer);
 	}
 
 	public void resize(int width, int height) {

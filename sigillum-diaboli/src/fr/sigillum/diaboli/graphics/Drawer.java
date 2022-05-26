@@ -2,6 +2,7 @@ package fr.sigillum.diaboli.graphics;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.function.Consumer;
 
 import org.joml.FrustumIntersection;
 import org.joml.Matrix3f;
@@ -190,6 +191,12 @@ public class Drawer implements IDisposable {
 		defaultShader().matrix4f("model", modelMatrix);
 	}
 
+	public void modelMatrix(Consumer<Matrix4f> consumer) {
+		this.modelMatrix.identity();
+		consumer.accept(modelMatrix);
+		defaultShader().matrix4f("model", modelMatrix);
+	}
+	
 	public void modelMatrix() {
 		this.modelMatrix.identity();
 		defaultShader().matrix4f("model", modelMatrix);

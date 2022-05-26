@@ -39,6 +39,7 @@ public class Assets {
 	private Assets() {
 		registerAll("shader", "shader", Paths.get("resources/assets/shaders"), ShaderProgram::load);
 		registerAll("texture", "png", Paths.get("resources/assets/textures"), Texture::new);
+		registerAll("texture", "jpeg", Paths.get("resources/assets/textures"), Texture::new);
 		registerAll("sprite", "png", Paths.get("resources/assets/sprites"), Texture::new);
 		registerAll("model", "obj", Paths.get("resources/assets/models"), OBJModel::load);
 		
