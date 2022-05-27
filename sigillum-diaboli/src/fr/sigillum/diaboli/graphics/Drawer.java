@@ -131,7 +131,7 @@ public class Drawer implements IDisposable {
 	public void drawVertex(float x, float y, float z, float u, float v) {
 		this.data.put(x).put(y).put(z);
 		this.data.put(u).put(v);
-		this.data.put(1.0f).put(1.0f).put(1.0f);
+		this.data.put(0.0f).put(1.0f).put(0.0f);
 	}
 
 	public void useDefaultTexture() {
