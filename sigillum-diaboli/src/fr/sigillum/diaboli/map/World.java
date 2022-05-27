@@ -10,9 +10,10 @@ import fr.alchemy.utilities.logging.Logger;
 import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.map.entity.Entity;
 import fr.sigillum.diaboli.map.entity.Player;
-import fr.sigillum.diaboli.map.entity.traits.LightTrait;
 import fr.sigillum.diaboli.map.entity.traits.TransformTrait;
+import fr.sigillum.diaboli.map.entity.traits.render.LightTrait;
 import fr.sigillum.diaboli.map.entity.traits.render.RenderTrait;
+import fr.sigillum.diaboli.map.entity.traits.render.ShaderTrait;
 
 public class World {
 
@@ -57,19 +58,17 @@ public class World {
 			}
 
 			var lights = region.getEntities(e -> e.getTrait(LightTrait.class).isPresent()).stream()
-					.map(e -> e.getTrait(LightTrait.class).get()).collect(ArrayCollectors.toArray(LightTrait.class));
+					.map(e -> e.requireTrait(LightTrait.class)).collect(ArrayCollectors.toArray(LightTrait.class));
 			for (var i = 0; i < Math.min(lights.size(), 4); ++i) {
 				var light = lights.get(i);
-				final var index = i;
-				drawer.defaultShader(p -> {
-					p.uniformBool("lights[" + index + "].enabled", true);
-					p.uniformVec3("lights[" + index + "].position", light.getPosition());
-					p.uniformVec3("lights[" + index + "].color", light.getColor());
-					p.uniformVec3("lights[" + index + "].attenuation", light.getAttenuation());
-					p.uniformFloat("lights[" + index + "].intensity", 1.0f);
-					p.uniformFloat("lights[" + index + "].range", 10.0f);
-				});
+				if (light.getIndex() != i) {
+					light.setIndex(i);
+				}
 			}
+
+			var program = drawer.defaultShader();
+			region.getEntities(e -> e.getTrait(ShaderTrait.class).isPresent()).stream()
+					.map(e -> e.requireTrait(ShaderTrait.class)).forEach(t -> t.upload(program));
 
 			drawer.begin();
 			region.render(drawer, frustum);

@@ -48,7 +48,7 @@ vec3 calcSpecular(Light light, vec3 viewDir, vec3 lightDir, vec3 worldNormal) {
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float NdotH = max(0.0, dot(worldNormal, halfwayDir));
     
-    return light.color * light.intensity * pow(NdotH, 1.45);
+    return light.color * light.intensity * pow(NdotH, 0.1);
 }
 
 float getAttenuationFactor(vec3 attenuation, float distance) {

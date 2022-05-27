@@ -206,7 +206,7 @@ public class Drawer implements IDisposable {
 		return program;
 	}
 
-	private ShaderProgram defaultShader() {
+	public ShaderProgram defaultShader() {
 		var program = Assets.get().getShader(DEFAULT_SHADER);
 		program.use();
 		return program;
