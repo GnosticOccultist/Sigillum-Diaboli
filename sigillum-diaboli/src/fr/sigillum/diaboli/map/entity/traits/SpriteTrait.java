@@ -21,6 +21,7 @@ public class SpriteTrait extends Trait {
 	private final Matrix3f orient = new Matrix3f();
 
 	public SpriteTrait(String name) {
+		super(TransformTrait.class);
 		this.key = AssetKey.of("sprite", name);
 	}
 
@@ -30,7 +31,7 @@ public class SpriteTrait extends Trait {
 	}
 
 	public void render(Drawer drawer, Player player) {
-		var pos = getEntity().getPosition();
+		var pos = getEntity().requireTrait(TransformTrait.class).getTranslation();
 		drawer.begin();
 		GL11C.glDisable(GL11C.GL_CULL_FACE);
 		rotateAxial(drawer, player);
@@ -43,8 +44,9 @@ public class SpriteTrait extends Trait {
 	}
 
 	private void rotateAxial(Drawer drawer, Player player) {
-		var entityPos = getEntity().getPosition();
-		look.set(player.getPosition()).sub(entityPos);
+		var entityPos = getEntity().requireTrait(TransformTrait.class).getTranslation();
+		var playerPos = player.requireTrait(TransformTrait.class).getTranslation();
+		look.set(playerPos).sub(entityPos);
 		var worldMatrix = new Matrix3f();
 		look.mul(worldMatrix, left);
 

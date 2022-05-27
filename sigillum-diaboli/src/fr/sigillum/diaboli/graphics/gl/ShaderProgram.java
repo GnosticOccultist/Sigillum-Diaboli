@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
+import org.joml.Matrix4fc;
+import org.joml.Vector3fc;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.system.MemoryStack;
@@ -129,7 +129,7 @@ public class ShaderProgram implements IAsset {
 		}
 	}
 
-	public void matrix4f(String name, Matrix4f matrix) {
+	public void matrix4f(String name, Matrix4fc matrix) {
 		use();
 		try (var stack = MemoryStack.stackPush()) {
 			var loc = GL20C.glGetUniformLocation(id, name);
@@ -137,7 +137,7 @@ public class ShaderProgram implements IAsset {
 		}
 	}
 
-	public void uniformVec3(String name, Vector3f value) {
+	public void uniformVec3(String name, Vector3fc value) {
 		use();
 		try (var stack = MemoryStack.stackPush()) {
 			var loc = GL20C.glGetUniformLocation(id, name);

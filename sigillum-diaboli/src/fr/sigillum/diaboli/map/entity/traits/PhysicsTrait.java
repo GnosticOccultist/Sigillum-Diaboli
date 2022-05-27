@@ -7,18 +7,24 @@ public class PhysicsTrait extends Trait {
 	protected final Vector3f velocity;
 
 	public PhysicsTrait() {
+		super(TransformTrait.class);
 		this.velocity = new Vector3f();
 	}
 
 	@Override
 	public void tick() {
-		if (!getEntity().isOnGround()) {
+		if (!isOnGround()) {
 			velocity.sub(0, 0.5f, 0);
 		}
 
-		getEntity().move(velocity.x(), velocity.y(), velocity.z());
+		getEntity().requireTrait(TransformTrait.class)
+				.translate(velocity.x(), velocity.y(), velocity.z());
 
 		velocity.zero();
+	}
+
+	private boolean isOnGround() {
+		return getEntity().requireTrait(TransformTrait.class).getTranslation().y() <= 1.85f;
 	}
 
 	public void applyVelocity(float x, float z) {

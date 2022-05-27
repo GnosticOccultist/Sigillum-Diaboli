@@ -6,15 +6,15 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
 
 import fr.sigillum.diaboli.asset.Assets;
-import fr.sigillum.diaboli.asset.Assets.AssetKey;
 import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.graphics.Window;
-import fr.sigillum.diaboli.graphics.obj.OBJModel;
 import fr.sigillum.diaboli.input.Input;
 import fr.sigillum.diaboli.map.World;
 import fr.sigillum.diaboli.map.entity.Entity;
 import fr.sigillum.diaboli.map.entity.Player;
+import fr.sigillum.diaboli.map.entity.traits.ModelTrait;
 import fr.sigillum.diaboli.map.entity.traits.SpriteTrait;
+import fr.sigillum.diaboli.map.entity.traits.TransformTrait;
 
 public class SigillumDiaboli extends AbstractGame {
 
@@ -30,7 +30,7 @@ public class SigillumDiaboli extends AbstractGame {
 
 	private Player player;
 
-	OBJModel model;
+	private Entity house;
 
 	@Override
 	protected void initialize() {
@@ -48,11 +48,16 @@ public class SigillumDiaboli extends AbstractGame {
 		this.world = new World();
 		this.world.add(player);
 
-		var monkNpc = new Entity(UUID.randomUUID(), 0, 0, 0);
+		var monkNpc = new Entity(UUID.randomUUID());
+		monkNpc.addTrait(new TransformTrait());
 		monkNpc.addTrait(new SpriteTrait("monk"));
 		world.add(monkNpc);
-
-		model = Assets.get().getModel(AssetKey.of("model", "small_medieval_house"));
+		
+		house = new Entity(UUID.randomUUID());
+		house.addTrait(new TransformTrait());
+		house.requireTrait(TransformTrait.class).scale(1.5f);
+		house.addTrait(new ModelTrait("small_medieval_house"));
+		world.add(house);
 	}
 
 	@Override
@@ -89,12 +94,13 @@ public class SigillumDiaboli extends AbstractGame {
 		GL11C.glClear(GL11C.GL_COLOR_BUFFER_BIT | GL11C.GL_DEPTH_BUFFER_BIT);
 
 		if (player != null) {
-			drawer.viewMatrix(player.getPosition(), player.getRotation());
+			var transform = player.requireTrait(TransformTrait.class);
+			drawer.viewMatrix(transform.getTranslation(), transform.getRotation());
 		}
 
 		world.render(drawer, player);
 
-		model.render(drawer);
+		house.requireTrait(ModelTrait.class).render(drawer, player);
 	}
 
 	public void resize(int width, int height) {

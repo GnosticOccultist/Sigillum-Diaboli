@@ -5,6 +5,13 @@ import fr.sigillum.diaboli.map.entity.Entity;
 public abstract class Trait {
 
 	private Entity entity = null;
+	
+	private final Class<? extends Trait>[] requirements;
+	
+	@SafeVarargs
+	public Trait(Class<? extends Trait>... requirements) {
+		this.requirements = requirements;
+	}
 
 	public abstract void tick();
 
@@ -32,6 +39,14 @@ public abstract class Trait {
 		this.entity = entity;
 
 		if (this.entity != null) {
+			for (var require : requirements) {
+				
+				if (!entity.hasTrait(require)) {
+					throw new IllegalStateException("Failed to attach trait " + this + " to " + 
+							entity + "! Missing required trait: " + require);
+				}
+			}
+			
 			onAttached();
 		}
 	}

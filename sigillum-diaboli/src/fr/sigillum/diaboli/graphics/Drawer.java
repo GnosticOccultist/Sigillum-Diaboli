@@ -7,8 +7,9 @@ import java.util.function.Consumer;
 import org.joml.FrustumIntersection;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
-import org.joml.Vector2f;
+import org.joml.Quaternionfc;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL15;
@@ -168,7 +169,7 @@ public class Drawer implements IDisposable {
 		defaultShader().matrix4f("projectionMatrix", projectionMatrix);
 	}
 
-	public void viewMatrix(Vector3f position, Vector2f rotation) {
+	public void viewMatrix(Vector3fc position, Quaternionfc rotation) {
 		var program = Assets.get().getShader(DEFAULT_SHADER);
 		program.use();
 

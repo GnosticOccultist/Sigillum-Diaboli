@@ -97,21 +97,18 @@ public class OBJModel implements IAsset {
 						loadMaterialLibrary(materialLibPath, materials);
 						break;
 					case "usemtl":
-	
 						if (!indices.isEmpty()) {
 							var material = materials.get(materialName);
+							var child = new OBJModel(modelName, material, positions, textureCoords, normals, indices);
 							if (root == null) {
-								root = new OBJModel(modelName, material, positions, textureCoords, normals, indices);
-								indices.clear();
+								root = child;
 							} else {
-								root.children
-										.add(new OBJModel(modelName, material, positions, textureCoords, normals, indices));
-								indices.clear();
+								root.children.add(child);
 							}
+							indices.clear();
 						}
-	
 						materialName = tokens[1];
-						continue;
+						break;
 				}
 			}
 		} catch (IOException ex) {
@@ -123,13 +120,13 @@ public class OBJModel implements IAsset {
 			modelName = FileUtils.getFileName(path);
 		}
 
+		// Push the final OBJ model.
 		var material = materials.get(materialName);
+		var child = new OBJModel(modelName, material, positions, textureCoords, normals, indices);
 		if (root == null) {
-			root = new OBJModel(modelName, material, positions, textureCoords, normals, indices);
-			indices.clear();
+			root = child;
 		} else {
-			root.children.add(new OBJModel(modelName, material, positions, textureCoords, normals, indices));
-			indices.clear();
+			root.children.add(child);
 		}
 
 		logger.info("Successfully loaded OBJ model from file '" + path + "'.");
@@ -210,7 +207,6 @@ public class OBJModel implements IAsset {
 
 		var texture = Assets.get().getTexture(AssetKey.of("texture", FileUtils.getFileName(material.textureName)));
 		drawer.useTexture(texture);
-		drawer.modelMatrix(m -> m.scale(1.5f));
 		mesh.render();
 	}
 
@@ -224,7 +220,6 @@ public class OBJModel implements IAsset {
 
 		for (var i = 0; i < vertices.length; ++i) {
 			var index = indices.get(i);
-			System.out.print(index + "  " + positions.size());
 			vertices[i] = new Vertex(positions.get(index.vIndex - 1), new Vector2f(), new Vector3f());
 
 			if (index.vtIndex > IndexGroup.NO_VALUE) {

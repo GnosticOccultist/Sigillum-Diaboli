@@ -9,6 +9,7 @@ import fr.alchemy.utilities.collections.array.ArrayCollectors;
 import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.map.entity.Entity;
 import fr.sigillum.diaboli.map.entity.Player;
+import fr.sigillum.diaboli.map.entity.traits.TransformTrait;
 import fr.sigillum.diaboli.map.tiles.Tile;
 import fr.sigillum.diaboli.util.BoundingBox;
 
@@ -65,8 +66,9 @@ public class Region {
 						}
 					}
 
-					var rx = (int) Math.floor(entity.getPosition().x() / (double) Region.SIZE);
-					var rz = (int) Math.floor(entity.getPosition().z() / (double) Region.SIZE);
+					var translation = entity.requireTrait(TransformTrait.class).getTranslation();
+					var rx = (int) Math.floor(translation.x() / (double) Region.SIZE);
+					var rz = (int) Math.floor(translation.z() / (double) Region.SIZE);
 					// Player changed regions.
 					if (rx != x || rz != z) {
 						var newRegion = world.getRegionLocal(rx, rz, true);

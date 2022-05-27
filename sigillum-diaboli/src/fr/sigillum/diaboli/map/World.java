@@ -10,6 +10,7 @@ import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.map.entity.Entity;
 import fr.sigillum.diaboli.map.entity.Player;
 import fr.sigillum.diaboli.map.entity.traits.SpriteTrait;
+import fr.sigillum.diaboli.map.entity.traits.TransformTrait;
 
 public class World {
 
@@ -20,12 +21,14 @@ public class World {
 	private final Map<Long, Region> regionCache = new HashMap<>();
 
 	public void add(Entity entity) {
-		var region = getRegion(entity.getPosition().x(), entity.getPosition().z(), true);
+		var translation = entity.requireTrait(TransformTrait.class).getTranslation();
+		var region = getRegion(translation.x(), translation.z(), true);
 		region.add(entity);
 	}
 
 	public void remove(Entity entity) {
-		var region = getRegion(entity.getPosition().x(), entity.getPosition().z());
+		var translation = entity.requireTrait(TransformTrait.class).getTranslation();
+		var region = getRegion(translation.x(), translation.z());
 		assert region != null;
 		region.remove(entity);
 	}
