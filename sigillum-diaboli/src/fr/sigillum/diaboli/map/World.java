@@ -11,8 +11,8 @@ import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.map.entity.Entity;
 import fr.sigillum.diaboli.map.entity.Player;
 import fr.sigillum.diaboli.map.entity.traits.LightTrait;
-import fr.sigillum.diaboli.map.entity.traits.SpriteTrait;
 import fr.sigillum.diaboli.map.entity.traits.TransformTrait;
+import fr.sigillum.diaboli.map.entity.traits.render.RenderTrait;
 
 public class World {
 
@@ -55,7 +55,7 @@ public class World {
 			if (!region.shouldRender(frustum)) {
 				continue;
 			}
-			
+
 			var lights = region.getEntities(e -> e.getTrait(LightTrait.class).isPresent()).stream()
 					.map(e -> e.getTrait(LightTrait.class).get()).collect(ArrayCollectors.toArray(LightTrait.class));
 			for (var i = 0; i < Math.min(lights.size(), 4); ++i) {
@@ -75,8 +75,8 @@ public class World {
 			region.render(drawer, frustum);
 			drawer.end();
 
-			region.getEntities(e -> e.getTrait(SpriteTrait.class).isPresent()).stream()
-					.map(e -> e.getTrait(SpriteTrait.class).get()).forEach(t -> t.render(drawer, player));
+			region.getEntities(e -> e.getTrait(RenderTrait.class).isPresent()).stream()
+					.map(e -> e.getTrait(RenderTrait.class).get()).forEach(t -> t.render(drawer, player));
 		}
 	}
 

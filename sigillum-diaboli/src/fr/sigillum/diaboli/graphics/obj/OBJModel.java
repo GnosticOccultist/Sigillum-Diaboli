@@ -208,6 +208,7 @@ public class OBJModel implements IAsset {
 		var texture = Assets.get().getTexture(AssetKey.of("texture", FileUtils.getFileName(material.textureName)));
 		drawer.useTexture(texture);
 		mesh.render();
+		drawer.useDefaultTexture();
 	}
 
 	void computeMesh() {

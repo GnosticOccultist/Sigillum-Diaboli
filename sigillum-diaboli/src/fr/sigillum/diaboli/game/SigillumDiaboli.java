@@ -13,9 +13,9 @@ import fr.sigillum.diaboli.map.World;
 import fr.sigillum.diaboli.map.entity.Entity;
 import fr.sigillum.diaboli.map.entity.Player;
 import fr.sigillum.diaboli.map.entity.traits.LightTrait;
-import fr.sigillum.diaboli.map.entity.traits.ModelTrait;
-import fr.sigillum.diaboli.map.entity.traits.SpriteTrait;
 import fr.sigillum.diaboli.map.entity.traits.TransformTrait;
+import fr.sigillum.diaboli.map.entity.traits.render.ModelTrait;
+import fr.sigillum.diaboli.map.entity.traits.render.SpriteTrait;
 
 public class SigillumDiaboli extends AbstractGame {
 
@@ -30,8 +30,6 @@ public class SigillumDiaboli extends AbstractGame {
 	private Drawer drawer;
 
 	private Player player;
-
-	private Entity house;
 
 	@Override
 	protected void initialize() {
@@ -53,8 +51,8 @@ public class SigillumDiaboli extends AbstractGame {
 		monkNpc.addTrait(new TransformTrait());
 		monkNpc.addTrait(new SpriteTrait("monk"));
 		world.add(monkNpc);
-		
-		house = new Entity(UUID.randomUUID());
+
+		var house = new Entity(UUID.randomUUID());
 		house.addTrait(new TransformTrait());
 		var light = new LightTrait();
 		light.setColor(0.75f, 0.0f, 0.0f);
@@ -103,8 +101,6 @@ public class SigillumDiaboli extends AbstractGame {
 		}
 
 		world.render(drawer, player);
-
-		house.requireTrait(ModelTrait.class).render(drawer, player);
 	}
 
 	public void resize(int width, int height) {

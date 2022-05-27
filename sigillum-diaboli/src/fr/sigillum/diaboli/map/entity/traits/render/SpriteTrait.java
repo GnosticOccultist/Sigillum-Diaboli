@@ -1,4 +1,4 @@
-package fr.sigillum.diaboli.map.entity.traits;
+package fr.sigillum.diaboli.map.entity.traits.render;
 
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
@@ -9,10 +9,9 @@ import fr.sigillum.diaboli.asset.Assets.AssetKey;
 import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.graphics.gl.Texture;
 import fr.sigillum.diaboli.map.entity.Player;
+import fr.sigillum.diaboli.map.entity.traits.TransformTrait;
 
-public class SpriteTrait extends Trait {
-
-	private final AssetKey key;
+public class SpriteTrait extends RenderTrait {
 
 	private final Vector3f look = new Vector3f();
 
@@ -21,15 +20,10 @@ public class SpriteTrait extends Trait {
 	private final Matrix3f orient = new Matrix3f();
 
 	public SpriteTrait(String name) {
-		super(TransformTrait.class);
-		this.key = AssetKey.of("sprite", name);
+		super(AssetKey.of("sprite", name));
 	}
 
 	@Override
-	public void tick() {
-
-	}
-
 	public void render(Drawer drawer, Player player) {
 		var pos = getEntity().requireTrait(TransformTrait.class).getTranslation();
 		drawer.begin();
@@ -74,7 +68,7 @@ public class SpriteTrait extends Trait {
 	}
 
 	protected Texture getTexture() {
-		var texture = Assets.get().getTexture(key);
+		var texture = Assets.get().getTexture(getKey());
 		return texture;
 	}
 }
