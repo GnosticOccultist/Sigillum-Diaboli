@@ -1,26 +1,27 @@
 #version 430 core
 
 layout (location = 0) in vec3 position;
-layout (location = 1) in float color;
-layout (location = 2) in vec2 texCoords;
+layout (location = 1) in vec2 texCoords;
+layout (location = 2) in vec3 normal;
 
-out float outColor;
 out vec2 fragTexCoords;
-out float fogDistance;
 
-uniform vec3 camPos;
+out vec3 worldPos;
+out vec4 viewPos;
+out vec3 fragNormal;
+
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 model;
+uniform mat3 normalMatrix;
 
 void main() {
 
-    vec4 modelPos = model * vec4(position, 1.0);
-    vec4 modelView = viewMatrix * modelPos;
-	gl_Position = projectionMatrix * modelView;
+    worldPos = (model * vec4(position, 1.0)).xyz;
+    viewPos = viewMatrix * vec4(worldPos, 1.0);
 	
-	fogDistance = distance(camPos, modelPos.xyz);
-	
-	outColor = color;
 	fragTexCoords = texCoords;
+	fragNormal = normalize(normalMatrix * normal);
+	
+	gl_Position = projectionMatrix * viewPos;
 }

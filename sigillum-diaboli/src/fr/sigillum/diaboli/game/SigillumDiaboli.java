@@ -12,6 +12,7 @@ import fr.sigillum.diaboli.input.Input;
 import fr.sigillum.diaboli.map.World;
 import fr.sigillum.diaboli.map.entity.Entity;
 import fr.sigillum.diaboli.map.entity.Player;
+import fr.sigillum.diaboli.map.entity.traits.LightTrait;
 import fr.sigillum.diaboli.map.entity.traits.ModelTrait;
 import fr.sigillum.diaboli.map.entity.traits.SpriteTrait;
 import fr.sigillum.diaboli.map.entity.traits.TransformTrait;
@@ -55,6 +56,9 @@ public class SigillumDiaboli extends AbstractGame {
 		
 		house = new Entity(UUID.randomUUID());
 		house.addTrait(new TransformTrait());
+		var light = new LightTrait();
+		light.setColor(0.75f, 0.0f, 0.0f);
+		monkNpc.addTrait(light);
 		house.requireTrait(TransformTrait.class).scale(1.5f);
 		house.addTrait(new ModelTrait("small_medieval_house"));
 		world.add(house);

@@ -5,7 +5,7 @@ import org.joml.Vector3f;
 
 public final class Vertex {
 
-	public static final int BUFFER_SIZE = 3 + 1 + 2;
+	public static final int BUFFER_SIZE = 3 + 2 + 3;
 
 	public final Vector3f position;
 

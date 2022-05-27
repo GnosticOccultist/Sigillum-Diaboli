@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.joml.Matrix3fc;
 import org.joml.Matrix4fc;
 import org.joml.Vector3fc;
 import org.lwjgl.opengl.GL11C;
@@ -128,6 +129,14 @@ public class ShaderProgram implements IAsset {
 			CURRENT = this;
 		}
 	}
+	
+	public void matrix3f(String name, Matrix3fc matrix) {
+		use();
+		try (var stack = MemoryStack.stackPush()) {
+			var loc = GL20C.glGetUniformLocation(id, name);
+			GL20C.glUniformMatrix3fv(loc, false, matrix.get(stack.mallocFloat(9)));
+		}
+	}
 
 	public void matrix4f(String name, Matrix4fc matrix) {
 		use();
@@ -144,12 +153,28 @@ public class ShaderProgram implements IAsset {
 			GL20C.glUniform3f(loc, value.x(), value.y(), value.z());
 		}
 	}
+	
+	public void uniformBool(String name, boolean value) {
+		use();
+		try (var stack = MemoryStack.stackPush()) {
+			var loc = GL20C.glGetUniformLocation(id, name);
+			GL20C.glUniform1i(loc, value ? 1 : 0);
+		}
+	}
 
 	public void uniformInt(String name, int value) {
 		use();
 		try (var stack = MemoryStack.stackPush()) {
 			var loc = GL20C.glGetUniformLocation(id, name);
 			GL20C.glUniform1i(loc, value);
+		}
+	}
+	
+	public void uniformFloat(String name, float value) {
+		use();
+		try (var stack = MemoryStack.stackPush()) {
+			var loc = GL20C.glGetUniformLocation(id, name);
+			GL20C.glUniform1f(loc, value);
 		}
 	}
 

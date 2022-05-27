@@ -101,7 +101,7 @@ public class Region {
 
 				if (tile.isSolid()) {
 					// Draw ceiling of the wall.s
-					drawer.drawRectangle(rx + x, WALL_SIZE, WALL_SIZE, rz + z, 0.2F);
+					drawer.drawRectangle(rx + x, WALL_SIZE, WALL_SIZE, rz + z);
 					if (!left.isSolid()) {
 						drawer.drawVertPlane(rx + x + 1, rz + z + 1, rx + x + 1, rz + z, 0, WALL_SIZE);
 					}

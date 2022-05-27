@@ -61,8 +61,8 @@ public class Mesh {
 		GL30C.glEnableVertexAttribArray(2);
 
 		GL30C.glVertexAttribPointer(0, 3, GL11C.GL_FLOAT, false, Vertex.BUFFER_SIZE * 4, 0);
-		GL30C.glVertexAttribPointer(1, 1, GL11C.GL_FLOAT, false, Vertex.BUFFER_SIZE * 4, 12);
-		GL30C.glVertexAttribPointer(2, 2, GL11C.GL_FLOAT, false, Vertex.BUFFER_SIZE * 4, 16);
+		GL30C.glVertexAttribPointer(1, 2, GL11C.GL_FLOAT, false, Vertex.BUFFER_SIZE * 4, 12);
+		GL30C.glVertexAttribPointer(2, 3, GL11C.GL_FLOAT, false, Vertex.BUFFER_SIZE * 4, 20);
 
 		GL30C.glBindVertexArray(0);
 	}
@@ -93,10 +93,12 @@ public class Mesh {
 			data.put(vertices[i].position.y);
 			data.put(vertices[i].position.z);
 
-			data.put(1.0f);
-
 			data.put(vertices[i].textureCoords.x);
 			data.put(vertices[i].textureCoords.y);
+			
+			data.put(vertices[i].normal.x);
+			data.put(vertices[i].normal.y);
+			data.put(vertices[i].normal.z);
 		}
 
 		data.flip();
