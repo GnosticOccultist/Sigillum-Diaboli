@@ -1,5 +1,6 @@
 package fr.sigillum.diaboli.game;
 
+import java.util.Random;
 import java.util.UUID;
 
 import org.lwjgl.glfw.GLFW;
@@ -61,6 +62,10 @@ public class SigillumDiaboli extends AbstractGame {
 		house.requireTrait(TransformTrait.class).translate(5, 0, 0).scale(1f);
 		house.addTrait(new ModelTrait("graveyard"));
 		world.add(house);
+
+		// Town map gen.
+		var random = new Random();
+		Village.generate(random.nextLong());
 	}
 
 	@Override
