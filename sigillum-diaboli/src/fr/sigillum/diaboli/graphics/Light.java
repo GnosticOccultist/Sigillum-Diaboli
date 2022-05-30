@@ -4,6 +4,8 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 public class Light {
+	
+	public static final int MAX_LIGHTS = 4;
 
 	private final Vector3f position;
 

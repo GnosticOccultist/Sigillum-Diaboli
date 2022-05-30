@@ -8,6 +8,7 @@ import fr.alchemy.utilities.collections.array.ArrayCollectors;
 import fr.alchemy.utilities.logging.FactoryLogger;
 import fr.alchemy.utilities.logging.Logger;
 import fr.sigillum.diaboli.graphics.Drawer;
+import fr.sigillum.diaboli.graphics.Light;
 import fr.sigillum.diaboli.map.entity.Entity;
 import fr.sigillum.diaboli.map.entity.Player;
 import fr.sigillum.diaboli.map.entity.traits.TransformTrait;
@@ -59,7 +60,7 @@ public class World {
 
 			var lights = region.getEntities(e -> e.getTrait(LightTrait.class).isPresent()).stream()
 					.map(e -> e.requireTrait(LightTrait.class)).collect(ArrayCollectors.toArray(LightTrait.class));
-			for (var i = 0; i < Math.min(lights.size(), 4); ++i) {
+			for (var i = 0; i < Math.min(lights.size(), Light.MAX_LIGHTS); ++i) {
 				var light = lights.get(i);
 				if (light.getIndex() != i) {
 					light.setIndex(i);
