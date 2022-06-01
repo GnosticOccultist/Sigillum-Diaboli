@@ -72,7 +72,9 @@ public class CurtainWall {
 			} else {
 				entrances.fastRemove(index - 1);
 				entrances.fastRemove(index);
-				entrances.fastRemove(index + 1);
+				if (entrances.size() > index + 1) {
+					entrances.fastRemove(index + 1);
+				}
 			}
 
 		} while (entrances.size() >= 3);
@@ -82,6 +84,10 @@ public class CurtainWall {
 		}
 
 		logger.info("Successfully generated " + gates.size() + " gates!");
+	}
+	
+	public Polygon getShape() {
+		return shape;
 	}
 
 	public float getRadius() {

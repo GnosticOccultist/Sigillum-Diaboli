@@ -65,7 +65,7 @@ public class SigillumDiaboli extends AbstractGame {
 
 		// Town map gen.
 		var random = new Random();
-		Village.generate(random.nextLong());
+		Village.generate(random.nextInt());
 	}
 
 	@Override

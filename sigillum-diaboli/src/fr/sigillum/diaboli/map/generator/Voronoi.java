@@ -147,19 +147,19 @@ public class Voronoi {
 					break;
 				}
 			}
-			
+
 			if (real) {
 				result.add(r);
 			}
 		}
 		return result;
 	}
-	
+
 	public Region getRegion(Vector2f point) {
 		if (regionsDirty) {
 			rebuildRegions();
 		}
-		
+
 		return regions.get(point);
 	}
 
@@ -179,16 +179,16 @@ public class Voronoi {
 
 		this.triangles.add(new Triangle(c1, c2, c3));
 		this.triangles.add(new Triangle(c2, c3, c4));
-		
+
 		rebuildRegions();
 	}
-	
+
 	private void rebuildRegions() {
 		regions.clear();
 		for (var point : points) {
 			this.regions.put(point, buildRegion(point));
 		}
-		
+
 		this.regionsDirty = false;
 	}
 
@@ -205,7 +205,7 @@ public class Voronoi {
 	public void sortPoints(Comparator<Vector2f> comparator) {
 		this.points.sort(comparator);
 	}
-	
+
 	public Vector2f getPoint(int index) {
 		return points.get(index);
 	}
@@ -235,6 +235,7 @@ public class Voronoi {
 
 			var tg1 = dy1 / dx1;
 			var t2 = ((y1 - y2) - (x1 - x2) * tg1) / (dy2 - dx2 * tg1);
+
 			this.center = new Vector2f(x2 + dx2 * t2, y2 + dy2 * t2);
 			this.radius = center.distance(a);
 		}
@@ -242,10 +243,10 @@ public class Voronoi {
 		public boolean hasEdge(Vector2f a1, Vector2f b1) {
 			return (a == a1 && b == b1) || (b == a1 && c == b1) || (c == a1 && a == b1);
 		}
-		
+
 		@Override
 		public String toString() {
-			return "a= " + a + ", b= " + b + ", c= " + c;
+			return "a= " + a + ", b= " + b + ", c= " + c + ", center= " + center;
 		}
 	}
 
@@ -255,10 +256,10 @@ public class Voronoi {
 		Array<Triangle> vertices = Array.ofType(Triangle.class);
 
 		public final Comparator<Triangle> COMPARATOR = (first, second) -> {
-			var x1 = first.c.x - seed.x;
-			var y1 = first.c.y - seed.y;
-			var x2 = second.c.x - seed.x;
-			var y2 = second.c.y - seed.y;
+			var x1 = first.center.x - seed.x;
+			var y1 = first.center.y - seed.y;
+			var x2 = second.center.x - seed.x;
+			var y2 = second.center.y - seed.y;
 
 			if (x1 >= 0 && x2 < 0)
 				return 1;
@@ -283,9 +284,14 @@ public class Voronoi {
 			var c = new Vector2f();
 			for (var vertex : vertices) {
 				c.add(vertex.center);
-				c.mul(1 / vertices.size());
 			}
+			c.mul(1 / vertices.size());
 			return c;
+		}
+
+		@Override
+		public String toString() {
+			return vertices.toString();
 		}
 	}
 }
