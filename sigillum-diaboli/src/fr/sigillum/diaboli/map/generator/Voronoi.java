@@ -66,8 +66,9 @@ public class Voronoi {
 		}
 
 		if (toRelax == null) {
-			toRelax = Array.of(voronoi.points);
+			toRelax = voronoi.points;
 		}
+
 		for (var region : regions) {
 			if (toRelax.contains(region.seed)) {
 				points.remove(region.seed);
@@ -123,7 +124,8 @@ public class Voronoi {
 
 			var index = 0;
 			do {
-				triangles.add(new Triangle(point, a.get(index), b.get(index)));
+				var triangle = new Triangle(point, a.get(index), b.get(index));
+				triangles.add(triangle);
 				index = a.indexOf(b.get(index));
 			} while (index != 0);
 
@@ -285,7 +287,7 @@ public class Voronoi {
 			for (var vertex : vertices) {
 				c.add(vertex.center);
 			}
-			c.mul(1 / vertices.size());
+			c.mul(1.0f / vertices.size());
 			return c;
 		}
 
