@@ -48,7 +48,11 @@ public class Drawer implements IDisposable {
 	private final FrustumIntersection frustum = new FrustumIntersection();
 
 	private int currentIndex;
-	
+
+	private int currentMode = GL11C.GL_TRIANGLES;
+
+	private int vertexCount;
+
 	public Drawer(int rectangleSize) {
 		this.data = MemoryUtil.memAllocFloat(16 * rectangleSize);
 		this.indices = MemoryUtil.memAllocInt(6 * rectangleSize);
@@ -132,6 +136,19 @@ public class Drawer implements IDisposable {
 		this.data.put(x).put(y).put(z);
 		this.data.put(u).put(v);
 		this.data.put(0.0f).put(1.0f).put(0.0f);
+
+		vertexCount++;
+	}
+
+	public void currentMode(int mode) {
+		var changed = currentMode != mode;
+
+		if (changed) {
+			end();
+			begin();
+		}
+
+		this.currentMode = mode;
 	}
 
 	public void useDefaultTexture() {
@@ -185,20 +202,20 @@ public class Drawer implements IDisposable {
 	public void modelMatrix(Consumer<Matrix4f> consumer) {
 		this.modelMatrix.identity();
 		consumer.accept(modelMatrix);
-		
+
 		this.modelMatrix.get3x3(normalMatrix);
-		
+
 		defaultShader().matrix4f("model", modelMatrix);
 		defaultShader().matrix3f("normalMatrix", normalMatrix);
 	}
-	
+
 	public void modelMatrix() {
 		this.modelMatrix.identity();
-		
+
 		defaultShader().matrix4f("model", modelMatrix);
 		defaultShader().matrix3f("normalMatrix", normalMatrix.identity());
 	}
-	
+
 	public ShaderProgram defaultShader(Consumer<ShaderProgram> consumer) {
 		var program = Assets.get().getShader(DEFAULT_SHADER);
 		program.use();
@@ -239,7 +256,11 @@ public class Drawer implements IDisposable {
 		GL30C.glVertexAttribPointer(1, 2, GL11.GL_FLOAT, false, 32, 12);
 		GL30C.glVertexAttribPointer(2, 3, GL11.GL_FLOAT, false, 32, 20);
 
-		GL15C.glDrawElements(GL11C.GL_TRIANGLES, indices.remaining(), GL11.GL_UNSIGNED_INT, 0);
+		if (indices.remaining() > 0) {
+			GL15C.glDrawElements(currentMode, indices.remaining(), GL11.GL_UNSIGNED_INT, 0);
+		} else {
+			GL15C.glDrawArrays(currentMode, 0, vertexCount);
+		}
 
 		GL30C.glBindVertexArray(0);
 
@@ -247,6 +268,7 @@ public class Drawer implements IDisposable {
 		this.indices.clear();
 
 		this.currentIndex = 0;
+		this.vertexCount = 0;
 		this.drawing = false;
 	}
 
