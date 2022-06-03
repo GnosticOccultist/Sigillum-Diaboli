@@ -85,7 +85,7 @@ public class CurtainWall {
 
 		logger.info("Successfully generated " + gates.size() + " gates!");
 	}
-	
+
 	public Polygon getShape() {
 		return shape;
 	}

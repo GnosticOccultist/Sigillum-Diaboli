@@ -24,8 +24,7 @@ public class LightTrait extends ShaderTrait {
 
 	@Override
 	public void tick() {
-		var translation = getEntity().requireTrait(TransformTrait.class).getTranslation();
-		updatePosition(translation.x(), translation.y(), translation.z());
+		
 	}
 
 	@Override

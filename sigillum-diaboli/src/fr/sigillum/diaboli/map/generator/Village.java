@@ -3,17 +3,19 @@ package fr.sigillum.diaboli.map.generator;
 import java.util.Random;
 
 import org.joml.Vector2f;
+import org.lwjgl.opengl.GL11C;
 
 import fr.alchemy.utilities.collections.array.Array;
 import fr.alchemy.utilities.collections.array.ArrayCollectors;
 import fr.alchemy.utilities.logging.FactoryLogger;
 import fr.alchemy.utilities.logging.Logger;
+import fr.sigillum.diaboli.graphics.Drawer;
 
 public class Village {
 
 	private static final Logger logger = FactoryLogger.getLogger("sigillum-diaboli.map.generator");
 
-	public static Village generate(long seed) {
+	public static Village generate(int seed) {
 		var rand = new Random(seed);
 
 		var village = new Village(10, rand);
@@ -24,7 +26,7 @@ public class Village {
 	private Vector2f center = new Vector2f();
 
 	protected final Array<Patch> patches = Array.ofType(Patch.class);
-	
+
 	protected final Array<Vector2f> gates = Array.ofType(Vector2f.class);
 
 	protected final Array<Patch> inner = Array.ofType(Patch.class);
@@ -37,7 +39,7 @@ public class Village {
 
 	Random rand;
 
-	private CurtainWall border;
+	CurtainWall border;
 
 	public Village(int patchCount, Random rand) {
 		this.patchCount = patchCount;
@@ -48,13 +50,12 @@ public class Village {
 		buildPatches();
 		optimizeJunctions();
 		buildWalls();
-		buildStreets();
 	}
 
 	private void buildPatches() {
 		var radius = rand.nextFloat() * Math.PI * 2;
 		var points = new Vector2f[patchCount * 8];
-		
+
 		logger.info("Generating " + points.length + " starting points.");
 		for (var i = 0; i < patchCount * 8; ++i) {
 			var a = radius + Math.sqrt(i) * 5;
@@ -100,7 +101,7 @@ public class Village {
 	}
 
 	private void optimizeJunctions() {
-		var patchesToOptimize = Array.of(inner);
+		var patchesToOptimize = inner;
 
 		var wards2clean = Array.ofType(Patch.class);
 		for (var w : patchesToOptimize) {
@@ -123,6 +124,7 @@ public class Village {
 
 					w.getShape().remove(v1);
 				}
+
 				index++;
 			}
 		}
@@ -132,29 +134,46 @@ public class Village {
 			for (var i = 0; i < w.getShape().size(); ++i) {
 				var v = w.getShape().get(i);
 				var dupIdx = 0;
-				while ((dupIdx = w.getShape().indexOf(v)) != -1) {
+				while ((dupIdx = w.getShape().indexOf(v, i + 1)) != -1) {
 					w.getShape().remove(dupIdx);
 				}
 			}
 		}
+
+		var it = patchesToOptimize.iterator();
+		while (it.hasNext()) {
+			var patch = it.next();
+			if (patch.isEmpty()) {
+				it.remove();
+			}
+		}
+
+		logger.info("Successfully optimized junctions!");
+		logger.info("Remaining " + patches.size() + " patches with " + inner.size() + " inner patches.");
 	}
-	
+
 	private void buildWalls() {
 		Array<Vector2f> reserved = Array.empty();
-		
+
 		border = new CurtainWall(this, inner, reserved);
-		
+
 		var radius = border.getRadius();
+
+		logger.info("Only retaining patches within 3 * radius -> 3 * " + radius + " (radius * 3).");
+		if (Float.isNaN(radius)) {
+			throw new RuntimeException("An error occured while computing border radius!");
+		}
+
+		var oldCount = patches.size();
+
 		var temp = patches.stream().filter(p -> p.getShape().distance(center) < radius * 3)
 				.collect(ArrayCollectors.toArray(Patch.class));
 		patches.clear();
 		patches.addAll(temp);
-		
+
+		logger.info("Switching from " + oldCount + " patches to " + patches.size() + " patches.");
+
 		this.gates.addAll(border.gates());
-	}
-
-	private void buildStreets() {
-
 	}
 
 	Array<Patch> patchByVertex(Vector2f v) {
@@ -165,21 +184,35 @@ public class Village {
 		return rand.nextInt(bound);
 	}
 
+	public void draw(Drawer drawer) {
+		GL11C.glDisable(GL11C.GL_CULL_FACE);
+		drawer.begin();
+		
+		for (var vert : plaza.getShape()) {
+			logger.info(vert.toString());
+			drawer.drawVertex(vert.x(), 0.0f, vert.y(), 1.0f, 1.0f);
+		}
+
+		logger.info("-------");
+		drawer.end();
+		GL11C.glEnable(GL11C.GL_CULL_FACE);
+	}
+
 	public static Polygon findCircumference(Array<Patch> wards) {
 		if (wards.size() == 0) {
 			return new Polygon();
-		}  else if (wards.size() == 1) {
+		} else if (wards.size() == 1) {
 			return new Polygon(wards.get(0).getShape());
 		}
-		
+
 		var a = Array.ofType(Vector2f.class);
 		var b = Array.ofType(Vector2f.class);
-		
+
 		for (var w1 : wards) {
 			w1.getShape().forEdge((pa, pb) -> {
 				var outer = true;
 				for (var w2 : wards) {
-					if (w2.getShape().findEdge(pb, pa ) != -1) {
+					if (w2.getShape().findEdge(pb, pa) != -1) {
 						outer = false;
 						break;
 					}
@@ -190,7 +223,7 @@ public class Village {
 				}
 			});
 		}
-		
+
 		var result = new Polygon();
 		var index = 0;
 		do {
@@ -199,5 +232,9 @@ public class Village {
 		} while (index != 0);
 
 		return result;
+	}
+
+	public Vector2f getCenter() {
+		return plaza.getShape().center();
 	}
 }
