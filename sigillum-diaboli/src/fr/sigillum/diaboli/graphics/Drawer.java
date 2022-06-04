@@ -144,7 +144,10 @@ public class Drawer implements IDisposable {
 		var changed = currentMode != mode;
 
 		if (changed) {
-			end();
+			if (drawing) {
+				end();
+			}
+			
 			begin();
 		}
 
