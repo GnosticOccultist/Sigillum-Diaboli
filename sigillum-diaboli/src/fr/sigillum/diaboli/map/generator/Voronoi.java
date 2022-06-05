@@ -197,7 +197,7 @@ public class Voronoi {
 	private Region buildRegion(Vector2f point) {
 		var region = new Region(point);
 		for (var tr : triangles) {
-			if (tr.a == point || tr.b == point || tr.c == point) {
+			if (tr.a.equals(point) || tr.b.equals(point) || tr.c.equals(point)) {
 				region.vertices.add(tr);
 			}
 		}
@@ -246,6 +246,20 @@ public class Voronoi {
 			return (a == a1 && b == b1) || (b == a1 && c == b1) || (c == a1 && a == b1);
 		}
 
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			
+			if (obj == null || obj.getClass() != getClass()) {
+				return false;
+			}
+			
+			var other = (Triangle) obj;
+			return a.equals(other.a) && b.equals(other.b) && c.equals(other.c);
+		}
+		
 		@Override
 		public String toString() {
 			return "a= " + a + ", b= " + b + ", c= " + c + ", center= " + center;

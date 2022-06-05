@@ -65,21 +65,22 @@ public class Polygon implements Iterable<Vector2f> {
 			index2 = temp;
 		}
 
-		var verts = Array.ofType(Vector2f.class);
+		var vertsFirst = Array.ofType(Vector2f.class);
 		for (var i = index1; i <= index2; ++i) {
-			verts.add(get(i));
+			vertsFirst.add(get(i));
 		}
 
-		var first = new Polygon(verts);
-		verts.clear();
+		var first = new Polygon(vertsFirst);
 
+		var vertsSecond = Array.ofType(Vector2f.class);
 		for (var i = index2; i < size(); ++i) {
-			verts.add(get(i));
+			vertsSecond.add(get(i));
 		}
 		for (var i = 0; i <= index1; ++i) {
-			verts.add(get(i));
+			vertsSecond.add(get(i));
 		}
-		var second = new Polygon(verts);
+		
+		var second = new Polygon(vertsSecond);
 
 		return Array.of(first, second);
 	}

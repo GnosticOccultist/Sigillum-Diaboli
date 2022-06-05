@@ -15,12 +15,12 @@ public class CurtainWall {
 
 	private final Polygon shape;
 
-	private final Array<Patch> patches = Array.ofType(Patch.class);
+	private final Array<Patch> patches;
 
 	private final Array<Vector2f> gates = Array.ofType(Vector2f.class);
 
 	public CurtainWall(Village village, Array<Patch> patches, Array<Vector2f> reserved) {
-		this.patches.addAll(patches);
+		this.patches = Array.of(patches);
 
 		if (patches.size() == 1) {
 			this.shape = patches.first().getShape();
