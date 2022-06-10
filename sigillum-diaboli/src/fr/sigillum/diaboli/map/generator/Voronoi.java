@@ -243,7 +243,7 @@ public class Voronoi {
 		}
 
 		public boolean hasEdge(Vector2f a1, Vector2f b1) {
-			return (a == a1 && b == b1) || (b == a1 && c == b1) || (c == a1 && a == b1);
+			return (a.equals(a1) && b.equals(b1)) || (b.equals(a1) && c.equals(b1)) || (c.equals(a1) && a.equals(b1));
 		}
 
 		@Override
