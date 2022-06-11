@@ -1,8 +1,6 @@
 package fr.sigillum.diaboli.game;
 
 import java.util.Random;
-import java.util.UUID;
-
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11C;
 
@@ -11,11 +9,8 @@ import fr.sigillum.diaboli.graphics.Drawer;
 import fr.sigillum.diaboli.graphics.Window;
 import fr.sigillum.diaboli.input.Input;
 import fr.sigillum.diaboli.map.World;
-import fr.sigillum.diaboli.map.entity.Entity;
 import fr.sigillum.diaboli.map.entity.Player;
 import fr.sigillum.diaboli.map.entity.traits.TransformTrait;
-import fr.sigillum.diaboli.map.entity.traits.render.LightTrait;
-import fr.sigillum.diaboli.map.entity.traits.render.ModelTrait;
 import fr.sigillum.diaboli.map.generator.Village;
 
 public class SigillumDiaboli extends AbstractGame {
@@ -42,7 +37,7 @@ public class SigillumDiaboli extends AbstractGame {
 
 		Assets.initialize();
 
-		this.drawer = new Drawer(32 * 32 * 3);
+		this.drawer = new Drawer(1024);
 		this.drawer.projectionMatrix(window.getWidth(), window.getHeight());
 
 		player = new Player(input, 0, 10, 0);
@@ -52,17 +47,7 @@ public class SigillumDiaboli extends AbstractGame {
 
 		// Town map gen.
 		var random = new Random();
-		layout = Village.generate(random.nextInt());
-
-		// Place the church in the town's center.
-		var church = new Entity(UUID.randomUUID());
-		church.addTrait(new TransformTrait());
-		church.addTrait(new LightTrait());
-		church.requireTrait(LightTrait.class).setColor(1.0f, 0.0f, 1.0f);
-		church.requireTrait(TransformTrait.class).translate(layout.getCenter().x(), 0, layout.getCenter().y())
-				.scale(1f);
-		church.addTrait(new ModelTrait("small_medieval_house"));
-		world.add(church);
+		layout = Village.generate(random.nextInt(), world);
 	}
 
 	@Override

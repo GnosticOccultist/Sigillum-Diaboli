@@ -1,6 +1,7 @@
 package fr.sigillum.diaboli.map.generator;
 
 import java.util.Random;
+import java.util.UUID;
 
 import org.joml.Vector2f;
 import org.lwjgl.opengl.GL11C;
@@ -10,26 +11,35 @@ import fr.alchemy.utilities.collections.array.ArrayCollectors;
 import fr.alchemy.utilities.logging.FactoryLogger;
 import fr.alchemy.utilities.logging.Logger;
 import fr.sigillum.diaboli.graphics.Drawer;
+import fr.sigillum.diaboli.map.World;
+import fr.sigillum.diaboli.map.entity.Entity;
+import fr.sigillum.diaboli.map.entity.traits.TransformTrait;
+import fr.sigillum.diaboli.map.entity.traits.render.LightTrait;
+import fr.sigillum.diaboli.map.entity.traits.render.ModelTrait;
 
 public class Village {
 
 	private static final Logger logger = FactoryLogger.getLogger("sigillum-diaboli.map.generator");
 
-	public static Village generate(int seed) {
+	public static Village generate(int seed, World world) {
 		var rand = new Random(seed);
 
 		var village = new Village(10, rand);
-		village.build();
+		village.build(world);
 		return village;
 	}
 
 	private Vector2f center = new Vector2f();
 
-	protected final Array<Patch> patches = Array.ofType(Patch.class);
+	protected Array<Patch> patches = Array.ofType(Patch.class);
 
 	protected final Array<Vector2f> gates = Array.ofType(Vector2f.class);
 
 	protected final Array<Patch> inner = Array.ofType(Patch.class);
+
+	protected final Array<Polygon> streets = Array.ofType(Polygon.class);
+
+	protected final Array<Polygon> roads = Array.ofType(Polygon.class);
 
 	private Patch plaza;
 
@@ -41,15 +51,20 @@ public class Village {
 
 	CurtainWall border;
 
+	private Topology topology;
+
+	private Array<Polygon> arteries;
+
 	public Village(int patchCount, Random rand) {
 		this.patchCount = patchCount;
 		this.rand = rand;
 	}
 
-	public void build() {
+	public void build(World world) {
 		buildPatches();
 		optimizeJunctions();
 		buildWalls();
+		buildStreets();
 	}
 
 	private void buildPatches() {
@@ -84,7 +99,8 @@ public class Village {
 			patches.add(patch);
 
 			if (count == 0) {
-				this.center = patch.getShape().stream().min((a, b) -> Float.compare(a.length(), b.length()))
+				this.center = patch.getShape().stream()
+						.min((a, b) -> Float.compare(a.length(), b.length()))
 						.orElseThrow();
 				if (plazaNeeded) {
 					this.plaza = patch;
@@ -112,6 +128,7 @@ public class Village {
 				var v1 = w.getShape().get((index + 1) % w.getShape().size());
 
 				if (v0 != v1 && v0.distance(v1) < 8) {
+					// Replace all occurrences if v1 with v0.
 					for (var w1 : patchByVertex(v1)) {
 						if (w1 != w) {
 							w1.getShape().set(w1.getShape().indexOf(v1), v0);
@@ -166,14 +183,133 @@ public class Village {
 
 		var oldCount = patches.size();
 
-		var temp = patches.stream().filter(p -> p.getShape().distance(center) < radius * 3)
+		patches = patches.stream().filter(p -> p.getShape().distance(center) < radius * 3)
 				.collect(ArrayCollectors.toArray(Patch.class));
-		patches.clear();
-		patches.addAll(temp);
 
 		logger.info("Switching from " + oldCount + " patches to " + patches.size() + " patches.");
 
 		this.gates.addAll(border.gates());
+	}
+
+	private void buildStreets() {
+		topology = new Topology(this);
+
+		for (var gate : gates) {
+			// Each gate is connected to the nearest corner of the plaza or to the central
+			// junction.
+			var end = plaza != null ? plaza.getShape().stream().min((v1, v2) -> {
+				float d1 = v1.distance(gate);
+				float d2 = v2.distance(gate);
+				return Float.compare(d1, d2);
+			}).orElse(center) : center;
+
+			var street = topology.buildPath(gate, end, topology.outer);
+			if (!street.isEmpty()) {
+				streets.add(new Polygon(street));
+				logger.info("Adding new street at " + gate + " to " + end + ".");
+
+				if (border.gates().contains(gate)) {
+					var dir = gate.normalize(1000);
+					Vector2f start = null;
+					var dist = Float.MAX_VALUE;
+					for (var point : topology.nodeToPt.values()) {
+						var d = point.distance(dir);
+						if (d < dist) {
+							dist = d;
+							start = point;
+						}
+					}
+
+					var road = topology.buildPath(start, gate, topology.inner);
+					if (road != null && !road.isEmpty()) {
+						logger.info("Adding new road at " + start + " to " + gate + ".");
+						roads.add(new Polygon(road));
+					}
+				}
+			} else {
+				throw new RuntimeException("Couldn't build a street!");
+			}
+		}
+
+		tidyUpRoads();
+
+		for (var a : arteries) {
+			var smoothed = a.smoothVertexEq(3);
+			for (var i = 1; i < a.size() - 1; ++i) {
+				a.set(i, smoothed.get(i));
+			}
+		}
+	}
+
+	private void tidyUpRoads() {
+		var segments = Array.ofType(Segment.class);
+
+		for (var street : streets) {
+			cutSegments(street, segments);
+		}
+
+		for (var road : roads) {
+			cutSegments(road, segments);
+		}
+
+		arteries = Array.ofType(Polygon.class);
+		while (!segments.isEmpty()) {
+			var seg = segments.pop();
+
+			var attached = false;
+			
+			for (var a : arteries) {
+				var old = a.get(0);
+				if (old.equals(seg.end)) {
+					for (int i = 1; i < a.size(); ++i) {
+						a.set(i, old);
+						
+						if ((i + 1) < a.size()) {
+							old = a.get(i + 1);
+						}
+					}
+					a.set(0, seg.start);
+					attached = true;
+					break;
+				} else if (a.last() == seg.start) {
+					a.add(seg.end);
+					attached = true;
+					break;
+				}
+			}
+
+			if (!attached) {
+				var artery = new Polygon(Array.of(seg.start, seg.end));
+				arteries.add(artery);
+				logger.info("Added new artery " + artery);
+			}
+		}
+	}
+
+	private void cutSegments(Polygon street, Array<Segment> segments) {
+		Vector2f v0 = null;
+		var v1 = street.get(0);
+		for (var i = 1; i < street.size(); ++i) {
+			v0 = v1;
+			v1 = street.get(i);
+
+			// Removing segments which go along the plaza.
+			if (plaza != null && plaza.getShape().contains(v0) && plaza.getShape().contains(v1)) {
+				continue;
+			}
+
+			var exists = false;
+			for (var seg : segments) {
+				if (seg.start.equals(v0) && seg.end.equals(v1)) {
+					exists = true;
+					break;
+				}
+			}
+
+			if (!exists) {
+				segments.add(new Segment(v0, v1));
+			}
+		}
 	}
 
 	Array<Patch> patchByVertex(Vector2f v) {
@@ -185,17 +321,22 @@ public class Village {
 	}
 
 	public void draw(Drawer drawer) {
-		GL11C.glDisable(GL11C.GL_CULL_FACE);
-		drawer.begin();
 		
 		for (var vert : plaza.getShape()) {
-			logger.info(vert.toString());
-			drawer.drawVertex(vert.x(), 0.0f, vert.y(), 1.0f, 1.0f);
+			drawer.drawBox(vert.x(), 0.0f, vert.y());
 		}
-
-		logger.info("-------");
-		drawer.end();
-		GL11C.glEnable(GL11C.GL_CULL_FACE);
+		
+		for (var street : streets) {
+			for (var vert : street) {
+				drawer.drawBox(vert.x(), 0.0f, vert.y());
+			}
+		}
+		
+		for (var street : arteries) {
+			for (var vert : street) {
+				drawer.drawBox(vert.x(), 0.0f, vert.y());
+			}
+		}
 	}
 
 	public static Polygon findCircumference(Array<Patch> wards) {
@@ -209,6 +350,7 @@ public class Village {
 		var b = Array.ofType(Vector2f.class);
 
 		for (var w1 : wards) {
+			logger.info(wards.toString());
 			w1.getShape().forEdge((pa, pb) -> {
 				var outer = true;
 				for (var w2 : wards) {
@@ -235,6 +377,6 @@ public class Village {
 	}
 
 	public Vector2f getCenter() {
-		return plaza.getShape().center();
+		return center;
 	}
 }

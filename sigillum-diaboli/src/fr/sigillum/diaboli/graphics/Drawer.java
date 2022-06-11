@@ -54,8 +54,8 @@ public class Drawer implements IDisposable {
 	private int vertexCount;
 
 	public Drawer(int rectangleSize) {
-		this.data = MemoryUtil.memAllocFloat(16 * rectangleSize);
-		this.indices = MemoryUtil.memAllocInt(6 * rectangleSize);
+		this.data = MemoryUtil.memAllocFloat(8 * 32 * rectangleSize);
+		this.indices = MemoryUtil.memAllocInt(36 * rectangleSize);
 		this.projectionMatrix = new Matrix4f();
 		this.viewMatrix = new Matrix4f();
 		this.modelMatrix = new Matrix4f();
@@ -118,6 +118,37 @@ public class Drawer implements IDisposable {
 		drawVertex(x0, y, z0, 0, 1);
 		drawVertex(x1, y, z1, 1, 1);
 		drawVertex(x1, y + height, z1, 1, 0);
+	}
+	
+	public void drawBox(float x, float y, float z) {
+		var i = currentIndex;
+		this.indices.put(i).put(i + 1).put(i + 3)
+				.put(i + 3).put(i + 1).put(i + 2);
+		
+		this.indices.put(i + 4).put(i).put(i + 3)
+				.put(i + 5).put(i + 4).put(i + 3);
+		
+		this.indices.put(i + 3).put(i + 2).put(i + 7)
+				.put(i + 5).put(i + 3).put(i + 7);
+		
+		this.indices.put(i + 6).put(i + 1).put(i)
+				.put(i + 6).put(i).put(i + 4);
+		
+		this.indices.put(i + 2).put(i + 1).put(i + 6)
+				.put(i + 2).put(i + 6).put(i + 7);
+		
+		this.indices.put(i + 7).put(i + 6).put(i + 4)
+				.put(i + 7).put(i + 4).put(i + 5);
+		currentIndex += 8;
+		
+		drawVertex(x - 0.5f, y + 0.5f, z + 0.5f, 0, 0);
+		drawVertex(x - 0.5f, y - 0.5f, z + 0.5f, 0, 1);
+		drawVertex(x + 0.5f, y - 0.5f, z + 0.5f, 0, 0);
+		drawVertex(x + 0.5f, y + 0.5f, z + 0.5f, 0, 1);
+		drawVertex(x - 0.5f, y + 0.5f, z - 0.5f, 0, 0);
+		drawVertex(x + 0.5f, y + 0.5f, z - 0.5f, 0, 0);
+		drawVertex(x - 0.5f, y - 0.5f, z - 0.5f, 0, 1);
+		drawVertex(x + 0.5f, y - 0.5f, z - 0.5f, 0, 1);
 	}
 
 	public void drawRectangle(float x, float y0, float y1, float z) {
@@ -210,6 +241,10 @@ public class Drawer implements IDisposable {
 
 		defaultShader().matrix4f("model", modelMatrix);
 		defaultShader().matrix3f("normalMatrix", normalMatrix);
+	}
+	
+	public void scale(float scale) {
+		modelMatrix(m -> m.scale(scale));
 	}
 
 	public void modelMatrix() {
