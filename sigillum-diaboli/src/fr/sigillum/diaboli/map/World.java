@@ -73,8 +73,6 @@ public class World {
 
 			region.getEntities(e -> e.getTrait(RenderTrait.class).isPresent()).stream()
 					.map(e -> e.getTrait(RenderTrait.class).get()).forEach(t -> t.render(drawer, player));
-			
-			drawer.end();
 		}
 	}
 

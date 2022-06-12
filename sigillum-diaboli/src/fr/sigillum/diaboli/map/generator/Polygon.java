@@ -39,6 +39,37 @@ public class Polygon implements Iterable<Vector2f> {
 
 		return center.mul(1.0f / size());
 	}
+	
+	public Vector2f centroid() {
+		var x = 0.0f;
+		var y = 0.0f;
+		var a = 0.0f;
+		for (var i = 0; i < size(); ++i) {
+			var v0 = get(i);
+			var v1 = get((i + 1) % size());
+			var f = v0.x * v1.y - v0.y * v1.x;
+			a += f;
+			x += (v0.x + v1.x) * f;
+			y += (v0.y + v1.y) * f;
+		}
+		var s6 = 1.0f / (3 * a);
+		return new Vector2f(s6 * x, s6 * y);
+	}
+	
+	public boolean borders(Polygon neighbour) {
+		for (var i = 0; i < size(); ++i) {
+			var j = neighbour.indexOf(get(i));
+			if (j != -1) {
+				var next = get((i + 1) % size());
+				// If this cause is not true, then should return false,
+				// but it doesn't work for some reason
+				if (next == neighbour.get((j + 1) % neighbour.size()) ||
+					next == neighbour.get((j + neighbour.size() - 1) % neighbour.size())) 
+					return true;
+			}
+		}
+		return false;
+	}
 
 	public void add(Vector2f vertex) {
 		this.vertices.add(vertex);
@@ -176,6 +207,24 @@ public class Polygon implements Iterable<Vector2f> {
 	public int findEdge(Vector2f a, Vector2f b) {
 		var index = indexOf(a);
 		return (index != -1 && get((index + 1) % size()) == b ? index : -1);
+	}
+	
+	public int[] getXPoints() {
+		var points = new int[size()];
+		var i = 0;
+		for (var vertex : vertices) {
+			points[i++] = (int) vertex.x();
+		}
+		return points;
+	}
+	
+	public int[] getYPoints() {
+		var points = new int[size()];
+		var i = 0;
+		for (var vertex : vertices) {
+			points[i++] = (int) vertex.y();
+		}
+		return points;
 	}
 
 	public Vector2f last() {

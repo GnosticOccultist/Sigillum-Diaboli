@@ -4,8 +4,6 @@ import java.util.Random;
 import java.util.UUID;
 
 import org.joml.Vector2f;
-import org.lwjgl.opengl.GL11C;
-
 import fr.alchemy.utilities.collections.array.Array;
 import fr.alchemy.utilities.collections.array.ArrayCollectors;
 import fr.alchemy.utilities.logging.FactoryLogger;
@@ -41,7 +39,7 @@ public class Village {
 
 	protected final Array<Polygon> roads = Array.ofType(Polygon.class);
 
-	private Patch plaza;
+	Patch plaza;
 
 	private final int patchCount;
 
@@ -53,7 +51,7 @@ public class Village {
 
 	private Topology topology;
 
-	private Array<Polygon> arteries;
+	Array<Polygon> arteries;
 
 	public Village(int patchCount, Random rand) {
 		this.patchCount = patchCount;
@@ -65,6 +63,31 @@ public class Village {
 		optimizeJunctions();
 		buildWalls();
 		buildStreets();
+		
+		var fountain = new Entity(UUID.randomUUID());
+		fountain.addTrait(new TransformTrait());
+		fountain.addTrait(new LightTrait());
+		fountain.requireTrait(LightTrait.class).setColor(1.0f, 0.0f, 1.0f);
+		var centroid = plaza.getShape().centroid();
+		fountain.requireTrait(TransformTrait.class).translate(centroid.x(), 0, centroid.y())
+				.scale(2.0f);
+		fountain.addTrait(new ModelTrait("fountain"));
+		world.add(fountain);
+		
+		for (var patch : inner) {
+			if (plaza != patch && plaza.getShape().borders(patch.getShape())) {
+				// Place the church in an adjacent patch.
+				var church = new Entity(UUID.randomUUID());
+				church.addTrait(new TransformTrait());
+				church.addTrait(new LightTrait());
+				church.requireTrait(LightTrait.class).setColor(1.0f, 0.0f, 1.0f);
+				centroid = patch.getShape().centroid();
+				church.requireTrait(TransformTrait.class).translate(centroid.x(), 0, centroid.y())
+						.scale(1f);
+				church.addTrait(new ModelTrait("small_medieval_house"));
+				world.add(church);
+			}
+		}
 	}
 
 	private void buildPatches() {
@@ -321,6 +344,7 @@ public class Village {
 	}
 
 	public void draw(Drawer drawer) {
+		drawer.begin();
 		
 		for (var vert : plaza.getShape()) {
 			drawer.drawBox(vert.x(), 0.0f, vert.y());
@@ -337,6 +361,8 @@ public class Village {
 				drawer.drawBox(vert.x(), 0.0f, vert.y());
 			}
 		}
+		
+		drawer.end();
 	}
 
 	public static Polygon findCircumference(Array<Patch> wards) {
